@@ -10,7 +10,7 @@ const app: express.Application = express();
 
 
 //Connect to MongoDB
-mongoose.connect('mongodb://localhost:27018/', { useNewUrlParser: true }).then(() => {
+mongoose.connect('mongodb://mongo:27017/', { useNewUrlParser: true }).then(() => {
   console.log('Successfully connected to MongoDB');
 }).catch((error) => {
   console.log('Unable to connect to MongoDB');
