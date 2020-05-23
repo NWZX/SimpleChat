@@ -2,6 +2,7 @@ let lastElement = null;
 let timer;
 let scrolled = false;
 let userScroll = false;
+let NodeUrl = "http://207.180.251.133:8000"
 const selector = document.getElementById("username");
 if (localStorage.getItem('Username') === null || localStorage.getItem('Username').length <= 0) {
     $("main").load("login.html", function () {
@@ -119,7 +120,7 @@ function Send() {
             username: localStorage.getItem('Username'),
             message: selector.innerHTML
         };
-        postAsync('http://localhost:3000/message/new', object, function () {
+        postAsync(NodeUrl + '/message/new', object, function () {
             console.log('Send Ok');
         });
         let sel = document.getElementById("message");
@@ -128,7 +129,7 @@ function Send() {
 }
 function updateMessage(all = false) {
     if (all) {
-        getAsync('http://localhost:3000/message', function (json) {
+        getAsync(NodeUrl + '/message', function (json) {
             let selector = document.getElementById("ac-block-id");
             json.forEach(element => {
                 if (lastElement != null && element.username != localStorage.getItem('Username') && element.username == lastElement.username) {
@@ -146,7 +147,7 @@ function updateMessage(all = false) {
         });
     }
     else {
-        getAsync('http://localhost:3000/message/last/' + lastElement.date.toString(), function (json) {
+        getAsync(NodeUrl + '/message/last/' + lastElement.date.toString(), function (json) {
             let selector = document.getElementById("ac-block-id");
             json.forEach(element => {
                 removeAllMsgAnimation();
