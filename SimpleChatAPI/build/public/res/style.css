@@ -1,0 +1,177 @@
+body{
+    background-image: url('background.jpg');
+}
+main{
+    min-height: 100%;  /* Fallback for browsers do NOT support vh unit */
+    min-height: 100vh; /* These two lines are counted as one :-)       */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+/*Login Bloc*/
+.ac-block-login{
+    background-color: rgba(255,255,255,.3);
+    backdrop-filter: blur(30px) saturate(125%);
+    width: 30%;
+    padding: 2%;
+    border-radius: 10px;
+    text-align: center;
+}
+.ac-block-login h1{
+    color: rgba(255,255,255,.9);
+}
+.ac-block-login input{
+    border: 0;
+    padding: 5px;
+    border-radius: 5px;
+    width: 90%;
+    vertical-align: middle;
+}
+.ac-block-login input:focus{
+    outline: none;
+    box-shadow: 0 6.4px 14.4px 0 rgba(0, 0, 0, 0.22), 0 4.8px 14.4px 0 rgba(0, 0, 0, 0.18);
+}
+.ac-block-login button{
+    border: 0;
+    padding: 5px;
+    border-radius: 5px;
+    width: 50%;
+    vertical-align: middle;
+    margin-top: 5%;
+}
+.ac-block-login button:focus{
+    outline: none;
+    box-shadow: 0 6.4px 14.4px 0 rgba(0, 0, 0, 0.22), 0 4.8px 14.4px 0 rgba(0, 0, 0, 0.18);
+}
+
+/*Message Bloc*/
+.ac-block{
+    background-color: rgba(255,255,255,.3);
+    backdrop-filter: blur(30px) saturate(125%);
+    width: 70%;
+    padding: 2%;
+    border-radius: 10px;
+    max-height: 70vh;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+}
+::-webkit-scrollbar{
+    width: 8px;
+    background-color: rgba(255,255,255,.6);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb{
+    background-color: rgba(158, 154, 154, 0.6);
+    border-radius: 10px;
+}
+.overflow-warp{
+    overflow-wrap:break-word;
+}
+
+
+/*MSG bubble*/
+.msg-bubble{
+    background-color: rgba(255,255,255,.6);
+    backdrop-filter: blur(30px) saturate(125%);
+    /*border: 2px solid black;*/    
+    border-radius: 6px;
+    padding: 2%;
+}
+.send-block{
+    width: 50%;
+    text-align: center;
+    margin-top: 2%;
+}
+.send-block #message{
+    display: inline-block;  
+    background-color: white;
+    border: 0;
+    padding: 5px;
+    border-radius: 5px;
+    width: 80%;
+    vertical-align: middle;
+    max-height: 136px;
+    overflow-y: auto;
+    text-align: justify;
+}
+.send-block #message:focus{
+    outline: none;
+    box-shadow: 0 6.4px 14.4px 0 rgba(0, 0, 0, 0.22), 0 4.8px 14.4px 0 rgba(0, 0, 0, 0.18);
+}
+.send-block #message[contenteditable]:empty::before {
+  content: "Tape your message...";
+  color: gray;
+}
+.btn-send{
+    display: inline-block;
+    background-color: rgba(255,255,255,.6);
+    backdrop-filter: blur(30px) saturate(125%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    text-align: center;
+    vertical-align: middle;
+    margin-left: 1%;
+    color: rgba(255,255,255,.8);
+    outline: none;
+    border: 0;
+}
+.btn-send:hover{
+    color: rgba(255,255,255,.4);
+}
+.btn-send:active{
+    animation: anisend 0.3s forwards;
+}
+.btn-send:focus{
+        outline: none;
+    border: 0;
+}
+@keyframes anisend {
+  0% { border-radius: 50%;  width: 50px; }
+  10% { border-radius: 120px; width: 60px; }
+  20% { border-radius: 100px; width: 70px; }
+  30% { border-radius: 80px; width: 80px; }
+  40% { border-radius: 60px; width: 90px; }
+  50% { border-radius: 40px;  width: 100px; }
+  70% { border-radius: 30px;  width: 110px;}
+  80% { border-radius: 20px;  width: 120px;}
+  90% { border-radius: 15px;  width: 130px;}
+  100% { border-radius: 10px; width: 150px;}
+}
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+@media (max-width: 768px) {
+    main{
+        justify-content: start;
+    }
+    .ac-block{
+        width: 100%;
+        max-height: 80vh;
+        overflow-x: hidden;
+        border-radius: 0;
+    }
+    .col-4{
+        -ms-flex: 0 0 41.666667%;
+        flex: 0 0 41.666667%;
+        max-width: 41.666667%;
+    }
+    .col-8{
+        -ms-flex: 0 0 58.333333%;
+        flex: 0 0 58.333333%;
+        max-width: 58.333333%;
+    }
+}
