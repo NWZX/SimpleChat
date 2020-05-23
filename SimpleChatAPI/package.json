@@ -1,12 +1,24 @@
 {
   "name": "simple-chat",
   "version": "1.0.0",
-  "description": "",
+  "description": "Minimal chat with Fluent UI ❤",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "tsc": "tsc"
   },
   "author": "NWZX",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/express": "^4.17.6",
+    "@types/mongoose": "^5.7.21",
+    "@types/node": "^14.0.4",
+    "ts-node": "^8.10.1",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "mongoose": "^5.9.15"
+  }
 }
