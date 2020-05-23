@@ -29,7 +29,7 @@ var messageController = __importStar(require("./controllers/MessageController"))
 // Create a new express application instance
 var app = express_1.default();
 //Connect to MongoDB
-mongoose_1.default.connect('mongodb://localhost:27017/', { useNewUrlParser: true }).then(function () {
+mongoose_1.default.connect('mongodb://localhost:27018/', { useNewUrlParser: true }).then(function () {
     console.log('Successfully connected to MongoDB');
 }).catch(function (error) {
     console.log('Unable to connect to MongoDB');
