@@ -1,35 +1,38 @@
 // lib/app.ts
-import express from 'express';
+import http from 'http';
+import express, { Router } from 'express';
+import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
-import * as messageController from 'controllers/messageController'  
+import * as messageController from './controllers/MessageController';
+
 // Create a new express application instance
 const app: express.Application = express();
 
 
 //Connect to MongoDB
-mongoose.connect('', {useNewUrlParser: true}).then(()=>{
+mongoose.connect('mongodb://127.0.0.1:27017/', { useNewUrlParser: true }).then(() => {
   console.log('Successfully connected to MongoDB');
-}).catch((error)=>{
+}).catch((error) => {
   console.log('Unable to connect to MongoDB');
   console.error(error);
 });
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  next();
+});
+
+app.use(bodyParser.json())
 //Create Route
-var messageRouter = express.Router();
-messageRouter.route('/message');
-
-messageRouter.get('/', function (req, res) {
-  res.writeHead(200, {"Content-Type": "text/html"});
-  res.send('Hello World!');
-});
-messageRouter.get('/:page', Message);
-messageRouter.post('/new', function(req, res) {
-  req.statusCode == 400
-});
-
-app.use('/api', messageRouter);
-export default app;
+app.use('/', express.static(__dirname + '/public'));
+app.route('/message').get(messageController.getAllMessage);
+app.get("/message/last/:time", messageController.getMessagesLast);
+app.route("/message/new").post(messageController.setMessage)
+//messageRouter.get('/:page', messageController.default.getMessagesInPage);
 
 app.listen(3000, function () {
   console.log('SimpleChat API start on port 3000!');
-});
+})
+export default app;
