@@ -1,10 +1,10 @@
 version: "3"
-service:
+services:
     app:
         container_name: simple_chat
         restart: always
         build: .
-        port:
+        ports:
             - "8000:3000"
         links:
             - mongo
