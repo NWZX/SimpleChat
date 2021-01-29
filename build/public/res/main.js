@@ -4,6 +4,7 @@ let scrolled = false;
 let userScroll = false;
 let NodeUrl = "http://207.180.251.133:8000"
 const selector = document.getElementById("username");
+
 if (localStorage.getItem('Username') === null || localStorage.getItem('Username').length <= 0) {
     $("main").load("login.html", function () {
         document.querySelector('form').addEventListener('submit', (e) => {
@@ -25,12 +26,19 @@ else {
     });
 }
 
-
+/**
+ * Transform UTC timestamp to Local timestamp
+ * @param {number} timestamp 
+ */
 function UTCtoLocalHour(timestamp) {
     let computerOffset = new Date().getTimezoneOffset()
     let time = new Date(timestamp - computerOffset);
     return time.getHours().toString() + ':' + (time.getMinutes() < 10 ? '0' : '') + time.getMinutes().toString();
 }
+/**
+ * Check if the user scroll
+ * @param {boolean} check 
+ */
 function updateScroll(check) {
     var element = document.getElementById("ac-block-id");
     if (scrolled == false) {
@@ -40,6 +48,10 @@ function updateScroll(check) {
         });
     }
 }
+
+/**
+ * Check if the scroll is down then lock him down
+ */
 function checkDownScroll() {
     var element = document.getElementById("ac-block-id");
     if (element.clientHeight + element.scrollTop == element.scrollHeight) {
@@ -84,6 +96,9 @@ function handlePaste(e) {
     document.getElementById('message').innerHTML = pastedData;
 }
 
+/**
+ * Main method
+ */
 function customRequired() {
     updateMessage(true);
     timer = setInterval(updateMessage, 1000);
@@ -103,6 +118,9 @@ function customRequired() {
         Send();
     });
 }
+/**
+ * Send the message to API
+ */
 function Send() {
     const selector = document.getElementById("message");
     if (selector.innerHTML === '' || selector.innerHTML.replace(/<(.|\n)*?>/g, '') === '') {
@@ -127,6 +145,10 @@ function Send() {
         sel.innerHTML = '';
     }
 }
+/**
+ * Get all or only the new message
+ * @param {boolean} all 
+ */
 function updateMessage(all = false) {
     if (all) {
         getAsync(NodeUrl + '/message', function (json) {
@@ -167,6 +189,9 @@ function updateMessage(all = false) {
         });
     }
 }
+/**
+ * Stop the animation
+ */
 function removeAllMsgAnimation() {
     let selector = document.querySelectorAll(".msg-bubble[style=\"animation: ms-motion-scaleDownIn 300ms;\"]");
     selector.forEach(element => {
@@ -174,6 +199,13 @@ function removeAllMsgAnimation() {
     });
 }
 
+/**
+ * Model for message sended by other user
+ * @param {string} username 
+ * @param {string} text 
+ * @param {string} date 
+ * @param {boolean} suit 
+ */
 function messageReceiveModel(username, text, date, suit = false) {
     let result = '<div class="row">' +
         '<div class="col-4">' +
@@ -190,6 +222,11 @@ function messageReceiveModel(username, text, date, suit = false) {
         '</div>';
     return result;
 }
+/**
+ * Model for message sended by user
+ * @param {string} text 
+ * @param {string} date 
+ */
 function messageSendModel(text, date) {
     let result = '<div class="row">' +
         '<div class="col-4">' +
