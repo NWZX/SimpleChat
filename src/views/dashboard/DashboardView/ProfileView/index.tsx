@@ -7,10 +7,12 @@ import {
     IconButton,
     Text,
     PersonaPresence,
+    Stack,
 } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
 import React, { useState } from 'react';
 import NewPostDialog from './NewPostDialog';
+import SettingsDialog from './SettingsDialog';
 
 interface Props {
     userId?: string;
@@ -21,6 +23,10 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleDialog = () => {
         setIsOpen(!isOpen);
+    };
+    const [isOpenSettings, setIsOpenSettings] = useState(false);
+    const toggleDialogSettings = () => {
+        setIsOpenSettings(!isOpenSettings);
     };
 
     return (
@@ -33,7 +39,22 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
                     {userId ? (
                         <PrimaryButton iconProps={{ iconName: 'Chat' }} text="Chat with NWZX" onClick={action} />
                     ) : (
-                        <PrimaryButton iconProps={{ iconName: 'CommentAdd' }} text="New Post" onClick={toggleDialog} />
+                        <Stack horizontal tokens={{ childrenGap: 2 }}>
+                            <Stack.Item>
+                                <PrimaryButton
+                                    iconProps={{ iconName: 'CommentAdd' }}
+                                    text="New Post"
+                                    onClick={toggleDialog}
+                                />
+                            </Stack.Item>
+                            <Stack.Item>
+                                <PrimaryButton
+                                    iconProps={{ iconName: 'PlayerSettings' }}
+                                    text="Username"
+                                    onClick={toggleDialogSettings}
+                                />
+                            </Stack.Item>
+                        </Stack>
                     )}
                 </Card.Item>
                 <Card.Item>
@@ -88,6 +109,7 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
                 </Card.Section>
             </Card>
             <NewPostDialog title="Add Post" subText="Share your idea :" open={isOpen} onClose={toggleDialog} />
+            <SettingsDialog title="Profile settings" subText="" open={isOpenSettings} onClose={toggleDialogSettings} />
         </>
     );
 };

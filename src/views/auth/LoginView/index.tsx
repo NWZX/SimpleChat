@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import firebase from 'firebase/app';
+import 'firebase/auth';
 
 interface Props {
     title: string;

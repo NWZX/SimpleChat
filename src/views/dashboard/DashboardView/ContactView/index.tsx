@@ -52,7 +52,10 @@ const ContactView = ({ itemAction }: Props): JSX.Element => {
 
     return (
         <>
-            <Stack horizontal style={{ marginBottom: '2vh' }}>
+            <Stack tokens={{ childrenGap: 10 }} style={{ marginBottom: '2vh' }}>
+                <Stack.Item grow>
+                    <PrimaryButton iconProps={{ iconName: 'SignOut' }} text="Logout" style={{ width: '100%' }} />
+                </Stack.Item>
                 <Stack.Item grow>
                     <PrimaryButton
                         iconProps={{ iconName: 'Add' }}
