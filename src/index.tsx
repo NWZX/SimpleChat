@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
-import { loadTheme } from '@fluentui/react';
+import { initializeIcons, loadTheme } from '@fluentui/react';
 import theme from 'src/theme';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
+import './index.css';
 
 loadTheme(theme);
+initializeIcons();
 
 ReactDOM.render(
     <BrowserRouter>

@@ -1,11 +1,12 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
+import ContactMobileView from './ContactView/ContactMobileView';
 
 interface Props {
     title: string;
 }
 
-const NotFoundView = ({ title }: Props): JSX.Element => {
+const DashboardMobileView = ({ title }: Props): JSX.Element => {
     return (
         <>
             <Helmet>
@@ -13,8 +14,9 @@ const NotFoundView = ({ title }: Props): JSX.Element => {
                 <meta charSet="utf-8" />
                 <link rel="canonical" href={window.location.href} />
             </Helmet>
+            <ContactMobileView />
         </>
     );
 };
 
-export default NotFoundView;
+export default DashboardMobileView;
