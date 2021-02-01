@@ -19,3 +19,4 @@ jobs:
           projectId: simplechat-37da5
         env:
           FIREBASE_CLI_PREVIEWS: hostingchannels
+          REACT_APP_FIREBASE_CONFIG: '${{ secrets.REACT_APP_FIREBASE_CONFIG }}'
