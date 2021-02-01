@@ -53,8 +53,8 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
             .firestore()
             .collection('messages')
             .where('users', 'array-contains', `${userId},${withUserId}`)
-            .orderBy('createdAt', 'asc')
-            .limit(30),
+            .limit(30)
+            .orderBy('createdAt', 'asc'),
     );
     let lastSender: string | undefined;
     const [user, setUser] = useState<string | undefined>();
@@ -64,6 +64,7 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
         else if (sender == userId) return user;
         else return secondUser;
     };
+    const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
         if (messages && !user && !secondUser) {
             firebase
@@ -81,8 +82,8 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
                     setUser(v.data()?.username);
                 });
         }
+        if (messages) ref.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, secondUser, user, userId, withUserId]);
-    const ref = useRef<HTMLDivElement>(null);
 
     return (
         <>
@@ -114,7 +115,6 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
                         />
                     );
                     lastSender = d.sender;
-                    ref.current?.scrollIntoView({ behavior: 'smooth' });
                     return msg;
                 })}
                 <div ref={ref}></div>

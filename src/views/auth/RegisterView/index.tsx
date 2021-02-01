@@ -55,7 +55,7 @@ const RegisterView = ({ title }: Props): JSX.Element => {
     };
 
     return (
-        <>
+        <div style={{ minHeight: '100vh' }}>
             <Helmet>
                 <title>{title}</title>
                 <meta charSet="utf-8" />
@@ -138,7 +138,7 @@ const RegisterView = ({ title }: Props): JSX.Element => {
                     </form>
                 </Stack.Item>
             </Stack>
-        </>
+        </div>
     );
 };
 
