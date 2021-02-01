@@ -1,27 +1,28 @@
 import { Persona, PersonaSize, Stack, Text } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
+import firebase from 'firebase/app';
 import React from 'react';
 
 interface Props {
     avatar?: string;
     username?: string;
     content: string;
-    createdAt: Date;
-    isFromSender?: true;
+    createdAt: firebase.firestore.Timestamp;
+    isFromSender?: boolean;
 }
 
 const timeSplitter = (refTime: Date): string => {
-    const rest = new Date().getTime() - refTime.getTime();
+    const rest = (new Date().getTime() - refTime.getTime()) / 1000;
     if (rest < 10) {
         return `Now`;
     } else if (rest < 60) {
-        return `${rest}s`;
+        return `${rest.toFixed(0)}s`;
     } else if (rest < 3600) {
-        return `${rest / 60}min`;
+        return `${(rest / 60).toFixed(0)}min`;
     } else if (rest < 86400) {
-        return `${rest / 3600}h`;
+        return `${(rest / 3600).toFixed(0)}h`;
     } else {
-        return refTime.toLocaleDateString();
+        return new Date(refTime).toLocaleDateString();
     }
 };
 
@@ -47,14 +48,14 @@ const MessageBuilder = ({ avatar, username, content, createdAt, isFromSender }: 
                     <Text>{content}</Text>
                 </Card.Item>
                 <Card.Item align={isFromSender ? 'end' : 'start'}>
-                    <Text variant="tiny">{timeSplitter(createdAt)}</Text>
+                    <Text variant="tiny">{timeSplitter(createdAt.toDate())}</Text>
                 </Card.Item>
             </Card>
         </Stack.Item>
     );
 
     return (
-        <>
+        <Card.Item align={isFromSender ? 'start' : 'end'}>
             <Stack horizontal tokens={{ childrenGap: 10 }}>
                 {isFromSender ? (
                     <>
@@ -68,7 +69,7 @@ const MessageBuilder = ({ avatar, username, content, createdAt, isFromSender }: 
                     </>
                 )}
             </Stack>
-        </>
+        </Card.Item>
     );
 };
 

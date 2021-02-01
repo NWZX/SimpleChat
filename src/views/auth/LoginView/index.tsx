@@ -1,6 +1,6 @@
 import { Card } from '@uifabric/react-cards';
-import { Link, PrimaryButton, Separator, Stack, Text, TextField } from '@fluentui/react';
-import React from 'react';
+import { Link, MessageBar, MessageBarType, PrimaryButton, Separator, Stack, Text, TextField } from '@fluentui/react';
+import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
 import { Controller, useForm } from 'react-hook-form';
@@ -24,19 +24,42 @@ const schema = yup.object().shape({
 
 const LoginView = ({ title }: Props): JSX.Element => {
     const navigate = useNavigate();
-    const { control, handleSubmit } = useForm<Inputs>({
+    const { control, handleSubmit, errors } = useForm<Inputs>({
         resolver: yupResolver(schema), // yup, joi and even your own.
     });
+    const [hasError, setHasError] = useState(false);
+    const [error, setError] = useState('');
+    const handleLogin = async (data: Inputs) => {
+        try {
+            await firebase.auth().signInWithEmailAndPassword(data.email, data.password);
+        } catch (error) {
+            setError(error.message);
+            setHasError(true);
+        }
+    };
+
     return (
-        <>
+        <div style={{ minHeight: '100vh' }}>
             <Helmet>
                 <title>{title}</title>
                 <meta charSet="utf-8" />
                 <link rel="canonical" href={window.location.href} />
             </Helmet>
+            {hasError && (
+                <MessageBar
+                    messageBarType={MessageBarType.error}
+                    isMultiline={false}
+                    dismissButtonAriaLabel="Close"
+                    onDismiss={() => {
+                        setHasError(false);
+                    }}
+                >
+                    {error}
+                </MessageBar>
+            )}
             <Stack horizontalAlign="center" verticalAlign="center" style={{ minHeight: 'inherit' }}>
                 <Stack.Item>
-                    <form onSubmit={handleSubmit((d) => console.log(d))}>
+                    <form onSubmit={handleSubmit(handleLogin)}>
                         <Card tokens={{ childrenMargin: 10, padding: 20, minWidth: 500 }}>
                             <Card.Item align="center">
                                 <Text variant="xxLarge">Simple Chat</Text>
@@ -50,6 +73,7 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                     label="Email :"
                                     name="email"
                                     control={control}
+                                    errorMessage={errors.email?.message}
                                     defaultValue=""
                                     type="email"
                                     required
@@ -61,6 +85,7 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                     label="Password :"
                                     name="password"
                                     control={control}
+                                    errorMessage={errors.password?.message}
                                     defaultValue=""
                                     type="password"
                                     canRevealPassword
@@ -86,7 +111,7 @@ const LoginView = ({ title }: Props): JSX.Element => {
                     </form>
                 </Stack.Item>
             </Stack>
-        </>
+        </div>
     );
 };
 

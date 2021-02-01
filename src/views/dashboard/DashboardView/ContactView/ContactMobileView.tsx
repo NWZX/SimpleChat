@@ -39,7 +39,8 @@ const data = [
 interface Props {}
 
 const ContactMobileView = ({}: Props): JSX.Element => {
-    return <List items={data} onRenderCell={ContactItem} />;
+    return <></>;
+    // return <List items={data} onRenderCell={ContactItem} />;
 };
 
 export default ContactMobileView;

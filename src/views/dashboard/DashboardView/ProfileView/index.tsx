@@ -8,7 +8,10 @@ import {
     Text,
     PersonaPresence,
     Stack,
+    ProgressIndicator,
 } from '@fluentui/react';
+import firebase from 'firebase/app';
+import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
 import { Card } from '@uifabric/react-cards';
 import React, { useState } from 'react';
 import NewPostDialog from './NewPostDialog';
@@ -28,16 +31,42 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
     const toggleDialogSettings = () => {
         setIsOpenSettings(!isOpenSettings);
     };
+    if (!userId) {
+        userId = window.localStorage.getItem('UID') || '';
+    }
+    const [user, loadingUser, errorUser] = useDocumentData<{
+        username: string;
+        lastActivity: firebase.firestore.Timestamp;
+    }>(firebase.firestore().doc(`users/${userId}`));
+    const [posts, loadingPosts, errorPosts] = useCollectionData<{
+        id: string;
+        content: string;
+        likes: string[];
+        dislike: string[];
+    }>(firebase.firestore().collection('posts').where('userId', '==', userId));
 
     return (
         <>
             <Card tokens={{ childrenMargin: 10, padding: 20, maxWidth: 'none' }}>
                 <Card.Item align="center">
-                    <Persona imageInitials={'N'} hidePersonaDetails presence={PersonaPresence.offline} />
+                    <Persona
+                        imageInitials={user?.username[0]}
+                        hidePersonaDetails
+                        presence={
+                            firebase.firestore.Timestamp.now().toMillis() - (user?.lastActivity.toMillis() || 0) <
+                            300 * 1000
+                                ? PersonaPresence.online
+                                : PersonaPresence.offline
+                        }
+                    />
                 </Card.Item>
                 <Card.Item align="center">
-                    {userId ? (
-                        <PrimaryButton iconProps={{ iconName: 'Chat' }} text="Chat with NWZX" onClick={action} />
+                    {userId != window.localStorage.getItem('UID') ? (
+                        <PrimaryButton
+                            iconProps={{ iconName: 'Chat' }}
+                            text={`Chat with ${user?.username}`}
+                            onClick={action}
+                        />
                     ) : (
                         <Stack horizontal tokens={{ childrenGap: 2 }}>
                             <Stack.Item>
@@ -61,51 +90,36 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
                     <Separator />
                 </Card.Item>
                 <Card.Section styles={{ root: { overflowY: 'auto' } }}>
-                    <ActivityItem
-                        key={0}
-                        activityDescription={[
-                            <Link key={0}>NWZX</Link>,
-                            <Text key={1} variant="tiny">
-                                , Today
-                            </Text>,
-                        ]}
-                        comments={[<span key={0}>Hello! I am making a comment and mentioning</span>]}
-                        activityPersonas={[{ imageInitials: 'N' }]}
-                        timeStamp={[
-                            <IconButton key={0} iconProps={{ iconName: 'Like' }} title="Emoji" ariaLabel="Emoji" />,
-                            <IconButton key={1} iconProps={{ iconName: 'Dislike' }} title="Emoji" ariaLabel="Emoji" />,
-                        ]}
-                    />
-                    <ActivityItem
-                        key={1}
-                        activityDescription={[
-                            <Link key={0}>NWZX</Link>,
-                            <Text key={1} variant="tiny">
-                                , Yesterday
-                            </Text>,
-                        ]}
-                        comments={[<span key={0}>Hello! I am making a comment and mentioning</span>]}
-                        activityPersonas={[{ imageInitials: 'N' }]}
-                        timeStamp={[
-                            <IconButton key={0} iconProps={{ iconName: 'Like' }} title="Emoji" ariaLabel="Emoji" />,
-                            <IconButton key={1} iconProps={{ iconName: 'Dislike' }} title="Emoji" ariaLabel="Emoji" />,
-                        ]}
-                    />
-                    <ActivityItem
-                        key={2}
-                        activityDescription={[
-                            <Link key={0}>NWZX</Link>,
-                            <Text key={1} variant="tiny">
-                                , {new Date().toLocaleTimeString()}
-                            </Text>,
-                        ]}
-                        comments={[<span key={0}>Hello! I am making a comment and mentioning</span>]}
-                        activityPersonas={[{ imageInitials: 'N' }]}
-                        timeStamp={[
-                            <IconButton key={0} iconProps={{ iconName: 'Like' }} title="Emoji" ariaLabel="Emoji" />,
-                            <IconButton key={1} iconProps={{ iconName: 'Dislike' }} title="Emoji" ariaLabel="Emoji" />,
-                        ]}
-                    />
+                    {loadingPosts && <ProgressIndicator />}
+                    {posts?.map((v) => {
+                        return (
+                            <ActivityItem
+                                key={'post_' + v.id}
+                                activityDescription={[
+                                    <Link key={0}>{user?.username}</Link>,
+                                    <Text key={1} variant="tiny">
+                                        , Today
+                                    </Text>,
+                                ]}
+                                comments={[<span key={0}>{v.content}</span>]}
+                                activityPersonas={[{ imageInitials: 'N' }]}
+                                timeStamp={[
+                                    <IconButton
+                                        key={0}
+                                        iconProps={{ iconName: 'Like' }}
+                                        title="Emoji"
+                                        ariaLabel="Emoji"
+                                    />,
+                                    <IconButton
+                                        key={1}
+                                        iconProps={{ iconName: 'Dislike' }}
+                                        title="Emoji"
+                                        ariaLabel="Emoji"
+                                    />,
+                                ]}
+                            />
+                        );
+                    })}
                 </Card.Section>
             </Card>
             <NewPostDialog title="Add Post" subText="Share your idea :" open={isOpen} onClose={toggleDialog} />

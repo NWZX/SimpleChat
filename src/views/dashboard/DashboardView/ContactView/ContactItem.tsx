@@ -1,5 +1,6 @@
 import { getFocusStyle, getTheme, ITheme, mergeStyleSets, Persona, PersonaPresence } from '@fluentui/react';
 import React from 'react';
+import firebase from 'firebase/app';
 
 const theme: ITheme = getTheme();
 const { palette, semanticColors } = theme;
@@ -24,16 +25,17 @@ interface IContact {
     id: string;
     username: string;
     avatar?: string;
-    lastActivity: number;
+    lastActivity: firebase.firestore.Timestamp;
     action?: (userId: string) => void;
 }
 
 interface Props {}
 
-const ContactView = (item?: IContact): JSX.Element => {
-    const isOnline = new Date().getTime() - (item?.lastActivity || 0) < 30;
+const ContactItem = (item?: IContact): JSX.Element => {
+    const isOnline = firebase.firestore.Timestamp.now().toMillis() - (item?.lastActivity.toMillis() || 0) < 300 * 1000;
     return (
         <div
+            key={'contact_' + item?.id}
             className={classNames.itemCell}
             onClick={() => {
                 item?.action && item.action(item.id);
@@ -48,4 +50,4 @@ const ContactView = (item?: IContact): JSX.Element => {
     );
 };
 
-export default ContactView;
+export default ContactItem;
