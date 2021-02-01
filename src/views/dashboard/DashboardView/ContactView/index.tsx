@@ -63,6 +63,13 @@ const ContactView = ({ userId, itemAction }: Props): JSX.Element => {
                         text="Logout"
                         style={{ width: '100%' }}
                         onClick={() => {
+                            firebase
+                                .firestore()
+                                .collection('users')
+                                .doc(window.localStorage.getItem('UID') || '')
+                                .update({
+                                    lastActivity: firebase.firestore.Timestamp.fromMillis(new Date().getTime() - 300),
+                                });
                             window.localStorage.removeItem('UID');
                             firebase.auth().signOut();
                         }}

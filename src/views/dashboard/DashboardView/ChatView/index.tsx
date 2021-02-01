@@ -48,14 +48,15 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
             setHasError(true);
         }
     };
-    const [messages] = useCollection(
+    const [messages, l, messageE] = useCollection(
         firebase
             .firestore()
             .collection('messages')
             .where('users', 'array-contains', `${userId},${withUserId}`)
-            .limit(30)
-            .orderBy('createdAt', 'asc'),
+            .orderBy('createdAt')
+            .limitToLast(30),
     );
+    console.log(messageE);
     let lastSender: string | undefined;
     const [user, setUser] = useState<string | undefined>();
     const [secondUser, setSecondUser] = useState<string | undefined>();
