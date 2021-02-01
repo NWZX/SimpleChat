@@ -1,7 +1,7 @@
 import { MessageBar, MessageBarType, PrimaryButton, Stack, TextField } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
 import React, { useRef, useState } from 'react';
-import { useCollection, useCollectionData } from 'react-firebase-hooks/firestore';
+import { useCollection } from 'react-firebase-hooks/firestore';
 import MessageBuilder from './MessageBuilder';
 import firebase from 'firebase/app';
 import { useEffect } from 'react';
@@ -48,12 +48,13 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
             setHasError(true);
         }
     };
-    const [messages, loadingMessages, errorMessages] = useCollection(
+    const [messages] = useCollection(
         firebase
             .firestore()
             .collection('messages')
             .where('users', 'array-contains', `${userId},${withUserId}`)
-            .orderBy('createdAt', 'asc'),
+            .orderBy('createdAt', 'asc')
+            .limit(30),
     );
     let lastSender: string | undefined;
     const [user, setUser] = useState<string | undefined>();
@@ -101,7 +102,7 @@ const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
                 style={{ overflowY: 'auto' }}
                 tokens={{ childrenMargin: 0, maxWidth: 'none', padding: 20, height: '90vh' }}
             >
-                {messages?.docs.map((v: any, i: number) => {
+                {messages?.docs.map((v: any) => {
                     const d = v.data();
                     const msg = (
                         <MessageBuilder

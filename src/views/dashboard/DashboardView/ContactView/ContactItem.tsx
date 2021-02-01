@@ -29,8 +29,6 @@ interface IContact {
     action?: (userId: string) => void;
 }
 
-interface Props {}
-
 const ContactItem = (item?: IContact): JSX.Element => {
     const isOnline = firebase.firestore.Timestamp.now().toMillis() - (item?.lastActivity.toMillis() || 0) < 300 * 1000;
     return (

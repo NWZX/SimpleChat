@@ -4,7 +4,7 @@ import { List, PrimaryButton, ProgressIndicator, Stack } from '@fluentui/react';
 import ContactItem from './ContactItem';
 import NewContactDialog from './NewContactDialog';
 import firebase from 'firebase/app';
-import { useCollectionData, useDocumentData, useDocument, useCollection } from 'react-firebase-hooks/firestore';
+import { useDocument, useCollection } from 'react-firebase-hooks/firestore';
 import _ from 'lodash';
 
 interface Props {

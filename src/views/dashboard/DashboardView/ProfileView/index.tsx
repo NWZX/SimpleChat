@@ -34,16 +34,16 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
     if (!userId) {
         userId = window.localStorage.getItem('UID') || '';
     }
-    const [user, loadingUser, errorUser] = useDocumentData<{
+    const [user] = useDocumentData<{
         username: string;
         lastActivity: firebase.firestore.Timestamp;
     }>(firebase.firestore().doc(`users/${userId}`));
-    const [posts, loadingPosts, errorPosts] = useCollectionData<{
+    const [posts, loadingPosts] = useCollectionData<{
         id: string;
         content: string;
         likes: string[];
         dislike: string[];
-    }>(firebase.firestore().collection('posts').where('userId', '==', userId));
+    }>(firebase.firestore().collection('posts').where('userId', '==', userId).limit(20));
 
     return (
         <>

@@ -36,6 +36,13 @@ const DashboardView = ({ title }: Props): JSX.Element => {
                 .collection('users')
                 .doc(window.localStorage.getItem('UID') || '')
                 .update({ lastActivity: firebase.firestore.Timestamp.now() });
+            setInterval(() => {
+                firebase
+                    .firestore()
+                    .collection('users')
+                    .doc(window.localStorage.getItem('UID') || '')
+                    .update({ lastActivity: firebase.firestore.Timestamp.now() });
+            }, 290 * 1000);
             setStatusUpdate(true);
         }
     }, [statusUpdate]);
