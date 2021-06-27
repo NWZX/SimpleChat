@@ -83,22 +83,23 @@ self.addEventListener('message', (event) => {
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
-const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
-if (status.state === 'granted') {
-    try {
-        // Register new sync every 24 hours
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        await self.registration.periodicSync.register('online', {
-            minInterval: 60 * 1000, // 1 minutes
-        });
-        console.log('Periodic background sync registered!');
-    } catch (e) {
-        console.error(`Periodic background sync failed:\n${e}`);
+navigator.permissions.query({ name: 'periodic-background-sync' }).then((status) => {
+    if (status.state === 'granted') {
+        try {
+            // Register new sync every 24 hours
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            self.registration.periodicSync.register('online', {
+                minInterval: 60 * 1000, // 1 minutes
+            });
+            console.log('Periodic background sync registered!');
+        } catch (e) {
+            console.error(`Periodic background sync failed:\n${e}`);
+        }
+    } else {
+        // Periodic background sync cannot be used.
     }
-} else {
-    // Periodic background sync cannot be used.
-}
+});
 
 self.addEventListener('periodicsync', (event) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
