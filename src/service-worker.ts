@@ -93,7 +93,7 @@ async function updateStatus() {
         const servicesKey = localStorage.getItem('servicesKey');
         if (process.env.API_GATEWAY) {
             const result = (await (
-                await fetch(`process.env.API_GATEWAY/${servicesKey}/${pageState ? 'online' : 'away'}`)
+                await fetch(`${process.env.REACT_APP_API_GATEWAY}/${servicesKey}/${pageState ? 'online' : 'away'}`)
             ).json()) as {
                 code: number;
                 error?: string;
