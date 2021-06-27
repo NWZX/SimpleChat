@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { IRoom, IUser } from '.';
+import { IRoom, IServiceKey, IUser } from '.';
 import firebase from 'firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
@@ -12,12 +12,14 @@ interface IApp {
     rooms?: IRoom[];
     currentProfile?: string;
     currentRoom?: { room: IRoom; page: 'profile' | 'chat' };
+    serviceKey?: string;
 }
 const initialState: IApp = {
     user: undefined,
     rooms: undefined,
     currentProfile: undefined,
     currentRoom: undefined,
+    serviceKey: localStorage.getItem('serviceKey') || undefined,
 };
 
 function reducer(state: IApp, action: { type: string; payload?: Record<string, any> }): IApp {
@@ -30,6 +32,9 @@ function reducer(state: IApp, action: { type: string; payload?: Record<string, a
             return { ...state, currentProfile: action.payload?.currentProfile };
         case 'set-room':
             return { ...state, currentRoom: action.payload?.currentRoom };
+        case 'set-service-key':
+            localStorage.setItem('serviceKey', action.payload?.serviceKey);
+            return { ...state, serviceKey: action.payload?.serviceKey };
         default:
             throw new Error();
     }
@@ -45,6 +50,10 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
     const [data, dispatchData] = useReducer(reducer, initialState);
     const [user] = useAuthState(firebase.auth());
+    const [serviceKey] = useDocumentData<IServiceKey>(
+        data.serviceKey ? undefined : db.collection('serviceKeys').doc(data.serviceKey),
+        { idField: 'id' },
+    );
     const [userData] = useDocumentData<IUser>(user?.uid ? db.collection('users').doc(user.uid) : undefined, {
         idField: 'id',
         refField: 'ref',
@@ -59,7 +68,16 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
     useEffect(() => {
         (async () => {
+            if (serviceKey) {
+                dispatchData({ type: 'set-service-key', payload: { serviceKey: serviceKey } });
+            }
+        })();
+        (async () => {
             if (userData) {
+                if (!data.serviceKey) {
+                    db.collection('serviceKeys').add({ user: userData });
+                }
+
                 dispatchData({ type: 'set-user', payload: { user: userData } });
                 dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
             } else {
@@ -74,7 +92,7 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
                 dispatchData({ type: 'set-rooms', payload: { rooms: undefined } });
             }
         })();
-    }, [userData, roomsData]);
+    }, [userData, roomsData, serviceKey, data.serviceKey, db]);
 
     return (
         <AppContext.Provider value={[data, (t, p) => dispatchData({ type: t, payload: p })]}>

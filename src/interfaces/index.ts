@@ -2,6 +2,10 @@ import firebase from 'firebase';
 
 export const db = firebase.firestore;
 
+export interface IServiceKey {
+    user: firebase.firestore.DocumentReference;
+}
+
 export interface IUser {
     id: string;
 

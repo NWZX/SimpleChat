@@ -15,6 +15,8 @@ import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
+let pageState: number;
+process.env.REACT_APP_FIREBASE_CONFIG;
 
 clientsClaim();
 
@@ -77,32 +79,42 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
     }
-});
-
-// Any other custom service worker logic can go here.
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
-navigator.permissions.query({ name: 'periodic-background-sync' }).then((status) => {
-    if (status.state === 'granted') {
-        try {
-            // Register new sync every 24 hours
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
-            self.registration.periodicSync.register('online', {
-                minInterval: 60 * 1000, // 1 minutes
-            });
-            console.log('Periodic background sync registered!');
-        } catch (e) {
-            console.error(`Periodic background sync failed:\n${e}`);
-        }
-    } else {
-        // Periodic background sync cannot be used.
+    if (event.data && event.data.type === 'PAGE_OPEN') {
+        pageState = 1;
+    }
+    if (event.data && event.data.type === 'PAGE_CLOSE') {
+        pageState = 0;
     }
 });
 
-self.addEventListener('periodicsync', (event) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+// Any other custom service worker logic can go here.
+async function updateStatus() {
+    try {
+        const servicesKey = localStorage.getItem('servicesKey');
+        if (process.env.API_GATEWAY) {
+            const result = (await (
+                await fetch(`process.env.API_GATEWAY/${servicesKey}/${pageState ? 'online' : 'away'}`)
+            ).json()) as {
+                code: number;
+                error?: string;
+            };
+            if (result.code === 200) {
+                console.log('status sync ok');
+            } else {
+                console.log('status sync err');
+            }
+        }
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+self.addEventListener('periodicsync', (event: any) => {
     console.log(event.tag);
+    if (event.tag === 'online') {
+        console.log('Fetching news in the background!');
+        event.waitUntil(updateStatus());
+        //for one off event
+        //registration.periodicSync.unregister('periodicsync');
+    }
 });
