@@ -71,7 +71,7 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
             if (userData) {
                 if (!data.serviceKey && (!serviceKey || serviceKey.length == 0)) {
                     const tempKey = await db.collection('serviceKeys').add({ user: userData });
-                    dispatchData({ type: 'set-service-key', payload: { serviceKey: tempKey } });
+                    dispatchData({ type: 'set-service-key', payload: { serviceKey: tempKey.id } });
                 } else if (!data.serviceKey && serviceKey && serviceKey.length > 0) {
                     dispatchData({ type: 'set-service-key', payload: { serviceKey: serviceKey[0].id } });
                 }
