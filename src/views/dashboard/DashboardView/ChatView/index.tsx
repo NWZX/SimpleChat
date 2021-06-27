@@ -109,6 +109,7 @@ const ChatView = ({}: Props): JSX.Element => {
                                         <ControlTextField
                                             name="content"
                                             control={control}
+                                            defaultValue=""
                                             showError={false}
                                             innerProps={{
                                                 type: 'text',

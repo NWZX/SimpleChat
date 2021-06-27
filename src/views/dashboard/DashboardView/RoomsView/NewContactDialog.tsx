@@ -83,6 +83,7 @@ const NewContactDialog = ({ open, onClose, title, subText }: Props): JSX.Element
                 <ControlTextField
                     name="contact"
                     control={control}
+                    defaultValue=""
                     innerProps={{ label: 'Username :', type: 'text', required: true }}
                 />
                 <DialogFooter>

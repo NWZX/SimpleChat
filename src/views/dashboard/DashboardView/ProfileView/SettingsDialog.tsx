@@ -71,6 +71,7 @@ const SettingsDialog = ({ open, onClose, title, subText }: Props): JSX.Element =
                 <ControlTextField
                     name="username"
                     control={control}
+                    defaultValue=""
                     innerProps={{ label: 'Username :', type: 'text', required: true }}
                 />
                 <DialogFooter>

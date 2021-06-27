@@ -50,14 +50,14 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
     const [data, dispatchData] = useReducer(reducer, initialState);
     const [user] = useAuthState(firebase.auth());
-    const [serviceKey] = useDocumentData<IServiceKey>(
-        data.serviceKey ? undefined : db.collection('serviceKeys').doc(data.serviceKey),
-        { idField: 'id' },
-    );
     const [userData] = useDocumentData<IUser>(user?.uid ? db.collection('users').doc(user.uid) : undefined, {
         idField: 'id',
         refField: 'ref',
     });
+    const [serviceKey] = useCollectionData<IServiceKey>(
+        !userData || data.serviceKey ? undefined : db.collection('serviceKeys').where('user', '==', userData.ref),
+        { idField: 'id' },
+    );
     const [roomsData] = useCollectionData<IRoom>(
         user?.uid ? db.collection('rooms').where('users', 'array-contains', user.uid) : undefined,
         {
@@ -68,16 +68,13 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
     useEffect(() => {
         (async () => {
-            if (serviceKey) {
-                dispatchData({ type: 'set-service-key', payload: { serviceKey: serviceKey } });
-            }
-        })();
-        (async () => {
             if (userData) {
-                if (!data.serviceKey) {
-                    db.collection('serviceKeys').add({ user: userData });
+                if (!data.serviceKey && (!serviceKey || serviceKey.length == 0)) {
+                    const tempKey = await db.collection('serviceKeys').add({ user: userData });
+                    dispatchData({ type: 'set-service-key', payload: { serviceKey: tempKey } });
+                } else if (!data.serviceKey && serviceKey && serviceKey.length > 0) {
+                    dispatchData({ type: 'set-service-key', payload: { serviceKey: serviceKey[0].id } });
                 }
-
                 dispatchData({ type: 'set-user', payload: { user: userData } });
                 dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
             } else {

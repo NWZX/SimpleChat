@@ -72,6 +72,7 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                 <ControlTextField
                                     name="email"
                                     control={control}
+                                    defaultValue=""
                                     innerProps={{ label: 'Email :', type: 'email', required: true }}
                                 />
                             </Card.Item>
@@ -79,6 +80,7 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                 <ControlTextField
                                     name="password"
                                     control={control}
+                                    defaultValue=""
                                     innerProps={{
                                         label: 'Password :',
                                         type: 'password',

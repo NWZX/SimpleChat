@@ -66,6 +66,7 @@ const NewPostDialog = ({ open, onClose, title, subText }: Props): JSX.Element =>
                 <ControlTextField
                     name="post"
                     control={control}
+                    defaultValue=""
                     innerProps={{ type: 'text', required: true, multiline: true, rows: 15 }}
                 />
                 <DialogFooter>
