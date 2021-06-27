@@ -5,7 +5,7 @@ interface Props {}
 
 const MainLayout = ({}: Props): JSX.Element => {
     return (
-        <div style={{ overflow: 'hidden', padding: 20 }}>
+        <div style={{ overflow: 'hidden', padding: 5 }}>
             <Outlet />
         </div>
     );

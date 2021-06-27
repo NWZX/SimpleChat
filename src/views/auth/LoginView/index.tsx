@@ -1,13 +1,14 @@
 import { Card } from '@uifabric/react-cards';
-import { Link, MessageBar, MessageBarType, PrimaryButton, Separator, Stack, Text, TextField } from '@fluentui/react';
+import { Link, MessageBar, MessageBarType, PrimaryButton, Separator, Stack, Text } from '@fluentui/react';
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import ControlTextField from 'src/components/ControlTextField';
 
 interface Props {
     title: string;
@@ -24,7 +25,7 @@ const schema = yup.object().shape({
 
 const LoginView = ({ title }: Props): JSX.Element => {
     const navigate = useNavigate();
-    const { control, handleSubmit, errors } = useForm<Inputs>({
+    const { control, handleSubmit } = useForm<Inputs>({
         resolver: yupResolver(schema), // yup, joi and even your own.
     });
     const [hasError, setHasError] = useState(false);
@@ -68,28 +69,21 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                 <Separator />
                             </Card.Item>
                             <Card.Item grow>
-                                <Controller
-                                    as={TextField}
-                                    label="Email :"
+                                <ControlTextField
                                     name="email"
                                     control={control}
-                                    errorMessage={errors.email?.message}
-                                    defaultValue=""
-                                    type="email"
-                                    required
+                                    innerProps={{ label: 'Email :', type: 'email', required: true }}
                                 />
                             </Card.Item>
                             <Card.Item grow>
-                                <Controller
-                                    as={TextField}
-                                    label="Password :"
+                                <ControlTextField
                                     name="password"
                                     control={control}
-                                    errorMessage={errors.password?.message}
-                                    defaultValue=""
-                                    type="password"
-                                    canRevealPassword
-                                    required
+                                    innerProps={{
+                                        label: 'Password :',
+                                        type: 'password',
+                                        required: true,
+                                    }}
                                 />
                             </Card.Item>
                             <Card.Item grow>

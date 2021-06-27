@@ -1,11 +1,12 @@
+import React from 'react';
 import { Dialog, DialogFooter, DialogType, IModalProps } from '@fluentui/react';
-import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import ControlTextField from 'src/components/ControlTextField';
 import { useApp } from 'src/interfaces/AppContext';
 import FluentButton from 'src/components/FluentButton';
+import { db, IRoom, IUser } from 'src/interfaces';
 
 const alphanum = /^[a-z0-9]+$/i;
 
@@ -16,11 +17,11 @@ interface Props {
     subText: string;
 }
 type Inputs = {
-    username: string;
+    contact: string;
 };
 
 const schema = yup.object().shape({
-    username: yup
+    contact: yup
         .string()
         .min(3, 'Username too short')
         .max(20, 'Username too long')
@@ -28,7 +29,37 @@ const schema = yup.object().shape({
         .required(),
 });
 
-const SettingsDialog = ({ open, onClose, title, subText }: Props): JSX.Element => {
+const NewContactDialog = ({ open, onClose, title, subText }: Props): JSX.Element => {
+    const { control, handleSubmit } = useForm<Inputs>({
+        resolver: yupResolver(schema), // yup, joi and even your own.
+    });
+    const { user } = useApp();
+
+    const onSuccess = async (data: Inputs): Promise<void> => {
+        try {
+            const contactSnap = await db().collection('users').where('username', '==', data.contact).get();
+            if (contactSnap.empty) {
+                throw new Error('No match');
+            }
+            const contact = {
+                ...(contactSnap.docs[0].data() as IUser),
+                id: contactSnap.docs[0].id,
+                ref: contactSnap.docs[0].ref,
+            };
+            //NEED check for duplicat
+            await db()
+                .collection('rooms')
+                .add({
+                    roomName: `${user?.username},${contact.username}`,
+                    users: [user?.id, contact.id],
+                    createdAt: db.Timestamp.now().toMillis(),
+                    updatedAt: db.Timestamp.now().toMillis(),
+                } as Partial<IRoom>);
+            onClose();
+        } catch (error) {
+            console.error(error.message);
+        }
+    };
     const modalProps: IModalProps = {
         isBlocking: false,
         styles: { main: { maxWidth: '50%', borderRadius: '10px' } },
@@ -37,25 +68,6 @@ const SettingsDialog = ({ open, onClose, title, subText }: Props): JSX.Element =
         type: DialogType.normal,
         title: title,
         subText: subText,
-    };
-    const { control, setValue, handleSubmit } = useForm<Inputs>({
-        resolver: yupResolver(schema), // yup, joi and even your own.
-    });
-    const { user } = useApp();
-
-    useEffect(() => {
-        if (user) {
-            setValue('username', user.username);
-        }
-    }, [setValue, user]);
-
-    const onSuccess = async (data: Inputs): Promise<void> => {
-        try {
-            await user?.ref.set({ username: data.username }, { merge: true });
-            onClose();
-        } catch (error) {
-            console.log(error);
-        }
     };
 
     return (
@@ -69,12 +81,12 @@ const SettingsDialog = ({ open, onClose, title, subText }: Props): JSX.Element =
         >
             <form onSubmit={handleSubmit(onSuccess)}>
                 <ControlTextField
-                    name="username"
+                    name="contact"
                     control={control}
                     innerProps={{ label: 'Username :', type: 'text', required: true }}
                 />
                 <DialogFooter>
-                    <FluentButton variant="primary" type="submit" text="Apply" />
+                    <FluentButton variant="primary" type="submit" text="Search & Add" />
                     <FluentButton onClick={onClose} text="Cancel" />
                 </DialogFooter>
             </form>
@@ -82,4 +94,4 @@ const SettingsDialog = ({ open, onClose, title, subText }: Props): JSX.Element =
     );
 };
 
-export default SettingsDialog;
+export default NewContactDialog;

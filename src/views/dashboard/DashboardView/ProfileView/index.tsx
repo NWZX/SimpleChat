@@ -1,14 +1,15 @@
 import {
     ActivityItem,
     Persona,
-    PrimaryButton,
     Separator,
     Link,
     IconButton,
     Text,
     PersonaPresence,
     Stack,
-    ProgressIndicator,
+    Spinner,
+    SpinnerSize,
+    useTheme,
 } from '@fluentui/react';
 import firebase from 'firebase/app';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
@@ -16,13 +17,15 @@ import { Card } from '@uifabric/react-cards';
 import React, { useState } from 'react';
 import NewPostDialog from './NewPostDialog';
 import SettingsDialog from './SettingsDialog';
+import { useApp } from 'src/interfaces/AppContext';
+import FluentButton from 'src/components/FluentButton';
+import { FluentCard } from 'src/components/FluentCard';
+import { db, IUser } from 'src/interfaces';
 
-interface Props {
-    userId?: string;
-    action: () => void;
-}
+interface Props {}
 
-const ProfileView = ({ userId, action }: Props): JSX.Element => {
+const ProfileView = ({}: Props): JSX.Element => {
+    const theme = useTheme();
     const [isOpen, setIsOpen] = useState(false);
     const toggleDialog = () => {
         setIsOpen(!isOpen);
@@ -31,55 +34,64 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
     const toggleDialogSettings = () => {
         setIsOpenSettings(!isOpenSettings);
     };
-    if (!userId) {
-        userId = window.localStorage.getItem('UID') || '';
-    }
-    const [user] = useDocumentData<{
-        username: string;
-        lastActivity: firebase.firestore.Timestamp;
-    }>(firebase.firestore().doc(`users/${userId}`));
+
+    const { user, currentRoom, changeRoom } = useApp();
+    const [userGet] = useDocumentData<IUser>(
+        user?.id != currentRoom?.room?.id && currentRoom?.room?.users.length == 2
+            ? db()
+                  .collection('users')
+                  .doc(currentRoom?.room?.users.find((u) => u != user?.id))
+            : undefined,
+        { idField: 'id', refField: 'ref' },
+    );
     const [posts, loadingPosts] = useCollectionData<{
         id: string;
         content: string;
         likes: string[];
         dislike: string[];
-    }>(firebase.firestore().collection('posts').where('userId', '==', userId).limit(20));
+    }>(
+        db()
+            .collection('posts')
+            .where('userId', '==', currentRoom?.room?.users.find((u) => u != user?.id) || user?.id)
+            .limit(20),
+    );
 
     return (
         <>
-            <Card tokens={{ childrenMargin: 10, padding: 20, maxWidth: 'none' }}>
+            <FluentCard tokens={{ childrenMargin: 10, padding: 10, maxWidth: 'none' }} style={{ margin: 10 }}>
                 <Card.Item align="center">
                     <Persona
-                        imageInitials={user?.username[0]}
+                        imageInitials={userGet?.username[0]}
                         hidePersonaDetails
                         presence={
-                            firebase.firestore.Timestamp.now().toMillis() - (user?.lastActivity.toMillis() || 0) <
-                            300 * 1000
+                            firebase.firestore.Timestamp.now().toMillis() - (user?.status.timestamp || 0) < 300 * 1000
                                 ? PersonaPresence.online
                                 : PersonaPresence.offline
                         }
                     />
                 </Card.Item>
                 <Card.Item align="center">
-                    {userId != window.localStorage.getItem('UID') ? (
-                        <PrimaryButton
+                    {currentRoom?.room.id != user?.id ? (
+                        <FluentButton
                             iconProps={{ iconName: 'Chat' }}
-                            text={`Chat with ${user?.username}`}
-                            onClick={action}
+                            text={`Chat with ${userGet?.username || '...'}`}
+                            onClick={() => {
+                                currentRoom && changeRoom(currentRoom.room, 'chat');
+                            }}
                         />
                     ) : (
-                        <Stack horizontal tokens={{ childrenGap: 2 }}>
+                        <Stack horizontal tokens={{ childrenGap: 5 }}>
                             <Stack.Item>
-                                <PrimaryButton
+                                <FluentButton
                                     iconProps={{ iconName: 'CommentAdd' }}
                                     text="New Post"
                                     onClick={toggleDialog}
                                 />
                             </Stack.Item>
                             <Stack.Item>
-                                <PrimaryButton
+                                <FluentButton
                                     iconProps={{ iconName: 'PlayerSettings' }}
-                                    text="Username"
+                                    text="Settings"
                                     onClick={toggleDialogSettings}
                                 />
                             </Stack.Item>
@@ -90,18 +102,25 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
                     <Separator />
                 </Card.Item>
                 <Card.Section styles={{ root: { overflowY: 'auto' } }}>
-                    {loadingPosts && <ProgressIndicator />}
+                    {loadingPosts && (
+                        <Spinner
+                            styles={{ circle: { borderWidth: '0.4rem' } }}
+                            size={SpinnerSize.large}
+                            label="Search what new..."
+                            style={{ marginTop: theme.spacing.l1, marginBottom: theme.spacing.l1 }}
+                        />
+                    )}
                     {posts?.map((v) => {
                         return (
                             <ActivityItem
                                 key={'post_' + v.id}
                                 activityDescription={[
-                                    <Link key={0}>{user?.username}</Link>,
+                                    <Link key={0}>{userGet?.username}</Link>,
                                     <Text key={1} variant="tiny">
                                         , Today
                                     </Text>,
                                 ]}
-                                comments={[<span key={0}>{v.content}</span>]}
+                                comments={[<Text key={0}>{v.content}</Text>]}
                                 activityPersonas={[{ imageInitials: 'N' }]}
                                 timeStamp={[
                                     <IconButton
@@ -121,9 +140,19 @@ const ProfileView = ({ userId, action }: Props): JSX.Element => {
                         );
                     })}
                 </Card.Section>
-            </Card>
-            <NewPostDialog title="Add Post" subText="Share your idea :" open={isOpen} onClose={toggleDialog} />
-            <SettingsDialog title="Profile settings" subText="" open={isOpenSettings} onClose={toggleDialogSettings} />
+            </FluentCard>
+            <NewPostDialog
+                title="New Post"
+                subText="Share your idea with many others..."
+                open={isOpen}
+                onClose={toggleDialog}
+            />
+            <SettingsDialog
+                title="Settings"
+                subText="Customize your experience"
+                open={isOpenSettings}
+                onClose={toggleDialogSettings}
+            />
         </>
     );
 };

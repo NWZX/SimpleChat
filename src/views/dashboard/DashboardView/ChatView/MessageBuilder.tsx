@@ -1,18 +1,21 @@
-import { Persona, PersonaSize, Stack, Text } from '@fluentui/react';
+import { Persona, PersonaSize, Text } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
-import firebase from 'firebase/app';
 import React from 'react';
+import { FluentCard } from 'src/components/FluentCard';
+import { FluentGrid, FluentGridItem } from 'src/components/FluentGrid';
+import { db, IUser } from 'src/interfaces';
+import { useApp } from 'src/interfaces/AppContext';
 
 interface Props {
     avatar?: string;
-    username?: string;
+    usernames: IUser[];
     content: string;
-    createdAt: firebase.firestore.Timestamp;
-    isFromSender?: boolean;
+    createdAt: number;
+    sender: string;
 }
 
-const timeSplitter = (refTime: Date): string => {
-    const rest = (new Date().getTime() - refTime.getTime()) / 1000;
+const timeSplitter = (refTime: number): string => {
+    const rest = (db.Timestamp.now().toMillis() - refTime) / 1000;
     if (rest < 10) {
         return `Now`;
     } else if (rest < 60) {
@@ -26,50 +29,52 @@ const timeSplitter = (refTime: Date): string => {
     }
 };
 
-const MessageBuilder = ({ avatar, username, content, createdAt, isFromSender }: Props): JSX.Element => {
+const MessageBuilder = ({ avatar, usernames, content, createdAt, sender }: Props): JSX.Element => {
+    const { user } = useApp();
+    const isFromSender = sender == user?.id;
+    const currentUser = usernames.find((u) => u.id == sender) || user;
+
     const firstPart = (
-        <Stack.Item>
-            {avatar || username ? (
-                <Persona
-                    imageUrl={avatar}
-                    imageInitials={username?.charAt(0)}
-                    hidePersonaDetails
-                    size={PersonaSize.size32}
-                />
-            ) : (
-                <div style={{ height: 32, width: 32 }} />
-            )}
-        </Stack.Item>
+        <FluentGridItem xs={2}>
+            <Persona
+                imageUrl={avatar}
+                imageInitials={currentUser?.username.charAt(0)}
+                hidePersonaDetails
+                size={PersonaSize.size32}
+            />
+        </FluentGridItem>
     );
     const lastPart = (
-        <Stack.Item>
-            <Card tokens={{ childrenMargin: 10, childrenGap: 0 }}>
+        <FluentGridItem xs={10}>
+            <FluentCard tokens={{ childrenMargin: 10, childrenGap: 0, maxWidth: '212px' }}>
                 <Card.Item>
-                    <Text>{content}</Text>
+                    <Text block style={{ overflowWrap: 'break-word' }}>
+                        {content}
+                    </Text>
                 </Card.Item>
                 <Card.Item align={isFromSender ? 'end' : 'start'}>
-                    <Text variant="tiny">{timeSplitter(createdAt.toDate())}</Text>
+                    <Text variant="tiny">{timeSplitter(createdAt)}</Text>
                 </Card.Item>
-            </Card>
-        </Stack.Item>
+            </FluentCard>
+        </FluentGridItem>
     );
 
     return (
-        <Card.Item align={isFromSender ? 'start' : 'end'}>
-            <Stack horizontal tokens={{ childrenGap: 10 }}>
+        <FluentGrid spacing={2} justify={isFromSender ? 'start' : 'end'} style={{ marginBottom: '2%' }}>
+            <FluentGridItem xs={12}>
                 {isFromSender ? (
-                    <>
+                    <FluentGrid spacing={4} justify="center">
                         {firstPart}
                         {lastPart}
-                    </>
+                    </FluentGrid>
                 ) : (
-                    <>
+                    <FluentGrid spacing={4} justify="center">
                         {lastPart}
                         {firstPart}
-                    </>
+                    </FluentGrid>
                 )}
-            </Stack>
-        </Card.Item>
+            </FluentGridItem>
+        </FluentGrid>
     );
 };
 

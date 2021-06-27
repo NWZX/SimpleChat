@@ -1,14 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
-import { initializeIcons, loadTheme } from '@fluentui/react';
-import theme from 'src/theme';
+import { initializeIcons } from '@fluentui/react';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
 
-loadTheme(theme);
 initializeIcons();
 
 ReactDOM.render(

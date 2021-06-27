@@ -1,12 +1,14 @@
-import { PrimaryButton, Separator, Stack, TextField, Text, Link, MessageBar, MessageBarType } from '@fluentui/react';
+import { PrimaryButton, Separator, Stack, Text, Link, MessageBar, MessageBarType } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import firebase from 'firebase/app';
+import ControlTextField from 'src/components/ControlTextField';
+import { IUser } from 'src/interfaces';
 
 const alphanum = /^[a-z0-9]+$/i;
 
@@ -33,25 +35,32 @@ const schema = yup.object().shape({
 
 const RegisterView = ({ title }: Props): JSX.Element => {
     const navigate = useNavigate();
-    const { control, handleSubmit, errors } = useForm<Inputs>({
+    const { control, handleSubmit } = useForm<Inputs>({
         resolver: yupResolver(schema), // yup, joi and even your own.
     });
     const [hasError, setHasError] = useState(false);
     const [error, setError] = useState('');
     const handleRegister = async (data: Inputs) => {
-        try {
-            const auth = await firebase.auth().createUserWithEmailAndPassword(data.email, data.password);
-            await firebase.firestore().collection('users').add({
-                authId: auth.user?.uid,
-                username: data.username,
-                contact: [],
-                createdAt: firebase.firestore.Timestamp.now(),
-                lastActivity: firebase.firestore.Timestamp.now(),
+        firebase
+            .auth()
+            .createUserWithEmailAndPassword(data.email, data.password)
+            .then((auth) => {
+                firebase
+                    .firestore()
+                    .collection('users')
+                    .doc(auth.user?.uid)
+                    .set({
+                        username: data.username,
+                        status: { type: 'online', timestamp: firebase.firestore.Timestamp.now().toMillis() },
+                        createdAt: firebase.firestore.Timestamp.now().toMillis(),
+                        lastActivity: firebase.firestore.Timestamp.now().toMillis(),
+                    } as Partial<IUser>);
+            })
+            .catch((error) => {
+                console.error(error);
+                setError(error.message);
+                setHasError(true);
             });
-        } catch (error) {
-            setError(error.message);
-            setHasError(true);
-        }
     };
 
     return (
@@ -84,39 +93,28 @@ const RegisterView = ({ title }: Props): JSX.Element => {
                                 <Separator />
                             </Card.Item>
                             <Card.Item grow>
-                                <Controller
-                                    as={TextField}
-                                    label="Username :"
+                                <ControlTextField
                                     name="username"
                                     control={control}
-                                    errorMessage={errors.username?.message}
-                                    defaultValue=""
-                                    required
+                                    innerProps={{ label: 'Username :', required: true }}
                                 />
                             </Card.Item>
                             <Card.Item grow>
-                                <Controller
-                                    as={TextField}
-                                    label="Email :"
+                                <ControlTextField
                                     name="email"
                                     control={control}
-                                    errorMessage={errors.email?.message}
-                                    defaultValue=""
-                                    type="email"
-                                    required
+                                    innerProps={{ label: 'Email :', type: 'email', required: true }}
                                 />
                             </Card.Item>
                             <Card.Item grow>
-                                <Controller
-                                    as={TextField}
-                                    label="Password :"
+                                <ControlTextField
                                     name="password"
                                     control={control}
-                                    errorMessage={errors.password?.message}
-                                    defaultValue=""
-                                    type="password"
-                                    canRevealPassword
-                                    required
+                                    innerProps={{
+                                        label: 'Password :',
+                                        type: 'password',
+                                        required: true,
+                                    }}
                                 />
                             </Card.Item>
                             <Card.Item grow>

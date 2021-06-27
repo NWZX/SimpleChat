@@ -57,7 +57,9 @@ registerRoute(
 // precache, in this case same-origin .png requests like those from in public/
 registerRoute(
     // Add in any other file extensions or routing criteria as needed.
-    ({ url }) => url.origin === self.location.origin && url.pathname.endsWith('.png'),
+    ({ url }) =>
+        url.origin === self.location.origin &&
+        ['.png', '.jpg', '.gif'].includes(url.pathname.substr(url.pathname.length - 5)),
     // Customize this strategy as needed, e.g., by changing to CacheFirst.
     new StaleWhileRevalidate({
         cacheName: 'images',
@@ -78,3 +80,28 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+if (status.state === 'granted') {
+    try {
+        // Register new sync every 24 hours
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        await self.registration.periodicSync.register('online', {
+            minInterval: 60 * 1000, // 1 minutes
+        });
+        console.log('Periodic background sync registered!');
+    } catch (e) {
+        console.error(`Periodic background sync failed:\n${e}`);
+    }
+} else {
+    // Periodic background sync cannot be used.
+}
+
+self.addEventListener('periodicsync', (event) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    console.log(event.tag);
+});

@@ -1,18 +1,20 @@
-import { MessageBar, MessageBarType, PrimaryButton, Stack, TextField } from '@fluentui/react';
+import { IconButton, Stack, Text } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
 import React, { useRef, useState } from 'react';
-import { useCollection } from 'react-firebase-hooks/firestore';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
 import MessageBuilder from './MessageBuilder';
 import firebase from 'firebase/app';
 import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import ControlTextField from 'src/components/ControlTextField';
+import { useApp } from 'src/interfaces/AppContext';
+import FluentButton from 'src/components/FluentButton';
+import { FluentCard } from 'src/components/FluentCard';
+import { db, getUsersByIds, IMessage, IUser } from 'src/interfaces';
 
-interface Props {
-    withUserId: string;
-    userId: string;
-}
+interface Props {}
 
 type Inputs = {
     content: string;
@@ -21,122 +23,114 @@ const schema = yup.object().shape({
     content: yup.string().required(),
 });
 
-const ChatView = ({ withUserId, userId }: Props): JSX.Element => {
-    const { control, handleSubmit, reset } = useForm<Inputs>({
+const ChatView = ({}: Props): JSX.Element => {
+    const { control, handleSubmit, setValue } = useForm<Inputs>({
         resolver: yupResolver(schema), // yup, joi and even your own.
     });
     const [hasError, setHasError] = useState(false);
     const [error, setError] = useState('');
+    const [usernames, setUsernames] = useState<IUser[]>([]);
+    const { user, currentRoom, changeRoom } = useApp();
+
+    const [messages] = useCollectionData<IMessage>(
+        db()
+            .collection('messages')
+            .where('roomId', '==', `${currentRoom?.room.id}`)
+            .orderBy('createdAt')
+            .limitToLast(30),
+        { idField: 'id', refField: 'ref' },
+    );
+
+    const ref = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (currentRoom && !usernames.length) {
+            (async () => {
+                const result = await getUsersByIds(currentRoom?.room.users);
+                setUsernames(result);
+            })();
+        }
+        if (messages) ref.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [currentRoom, messages, user, usernames.length]);
+
     const handleSend = async (data: Inputs) => {
         try {
-            const temp: any = {
-                content: data.content,
-                createdAt: firebase.firestore.Timestamp.now(),
-                sender: userId,
-                receiver: withUserId,
-                users: [`${userId},${withUserId}`, `${withUserId},${userId}`],
-            };
-            await firebase.firestore().collection('messages').add(temp);
-            await firebase
-                .firestore()
-                .collection('users')
-                .doc(window.localStorage.getItem('UID') || '')
-                .update({ lastActivity: firebase.firestore.Timestamp.now() });
-            reset();
+            if (user && currentRoom) {
+                db()
+                    .collection('messages')
+                    .add({
+                        content: data.content,
+                        createdAt: firebase.firestore.Timestamp.now().toMillis(),
+                        senderId: user.id,
+                        roomId: currentRoom.room.id,
+                    } as Partial<IMessage>);
+                setValue('content', '');
+            }
         } catch (error) {
             setError(error);
             setHasError(true);
         }
     };
-    const [messages] = useCollection(
-        firebase
-            .firestore()
-            .collection('messages')
-            .where('users', 'array-contains', `${userId},${withUserId}`)
-            .orderBy('createdAt')
-            .limitToLast(30),
-    );
-    let lastSender: string | undefined;
-    const [user, setUser] = useState<string | undefined>();
-    const [secondUser, setSecondUser] = useState<string | undefined>();
-    const getUser = (sender?: string, oldSender?: string): string | undefined => {
-        if (oldSender == sender) return undefined;
-        else if (sender == userId) return user;
-        else return secondUser;
-    };
-    const ref = useRef<HTMLDivElement>(null);
-    useEffect(() => {
-        if (messages && !user && !secondUser) {
-            firebase
-                .firestore()
-                .doc('users/' + withUserId)
-                .get()
-                .then((v) => {
-                    setSecondUser(v.data()?.username);
-                });
-            firebase
-                .firestore()
-                .doc('users/' + userId)
-                .get()
-                .then((v) => {
-                    setUser(v.data()?.username);
-                });
-        }
-        if (messages) ref.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages, secondUser, user, userId, withUserId]);
 
     return (
         <>
-            {hasError && (
-                <MessageBar
-                    messageBarType={MessageBarType.error}
-                    isMultiline={false}
-                    dismissButtonAriaLabel="Close"
-                    onDismiss={() => {
-                        setHasError(false);
-                    }}
-                >
-                    {error}
-                </MessageBar>
-            )}
-            <Card
-                style={{ overflowY: 'auto' }}
-                tokens={{ childrenMargin: 0, maxWidth: 'none', padding: 20, height: '90vh' }}
-            >
-                {messages?.docs.map((v: any) => {
-                    const d = v.data();
-                    const msg = (
-                        <MessageBuilder
-                            key={'msg_' + v.id}
-                            content={d.content}
-                            createdAt={d.createdAt}
-                            isFromSender={d.sender == userId}
-                            username={getUser(d.sender, lastSender)}
-                        />
-                    );
-                    lastSender = d.sender;
-                    return msg;
-                })}
-                <div ref={ref}></div>
-            </Card>
-            <form onSubmit={handleSubmit(handleSend)} style={{ marginTop: '2vh' }}>
-                <Stack horizontal tokens={{ childrenGap: 10 }}>
-                    <Stack.Item grow>
-                        <Controller
-                            as={TextField}
-                            name="content"
-                            control={control}
-                            defaultValue=""
-                            type="text"
-                            autoFocus
-                            required
-                        />
-                    </Stack.Item>
-                    <Stack.Item>
-                        <PrimaryButton type="submit" iconProps={{ iconName: 'Send' }} text="Send" />
-                    </Stack.Item>
-                </Stack>
-            </form>
+            <FluentCard style={{ margin: 10 }} tokens={{ childrenMargin: 0, maxWidth: 'none', padding: 10 }}>
+                <Card.Item>
+                    <Stack>
+                        <Stack.Item>
+                            <IconButton
+                                iconProps={{ iconName: 'Back' }}
+                                title="Emoji"
+                                ariaLabel="Emoji"
+                                onClick={() => {
+                                    currentRoom && changeRoom(currentRoom.room, 'profile');
+                                }}
+                            />
+                            {hasError && <Text>{error}</Text>}
+                        </Stack.Item>
+                        <Stack.Item grow={10}>
+                            <Stack style={{ overflowY: 'auto', overflowX: 'hidden', height: '80vh' }}>
+                                {messages?.map((v) => (
+                                    <Stack.Item key={'msg_' + v.id}>
+                                        <MessageBuilder
+                                            content={v.content}
+                                            createdAt={v.createdAt}
+                                            sender={v.senderId}
+                                            usernames={usernames}
+                                        />
+                                    </Stack.Item>
+                                ))}
+                            </Stack>
+                            <div ref={ref}></div>
+                        </Stack.Item>
+                        <Stack.Item>
+                            <form onSubmit={handleSubmit(handleSend)}>
+                                <Stack horizontal tokens={{ childrenGap: 10 }}>
+                                    <Stack.Item grow>
+                                        <ControlTextField
+                                            name="content"
+                                            control={control}
+                                            showError={false}
+                                            innerProps={{
+                                                type: 'text',
+                                                autoFocus: true,
+                                                autoComplete: 'off',
+                                            }}
+                                        />
+                                    </Stack.Item>
+                                    <Stack.Item>
+                                        <FluentButton
+                                            variant="primary"
+                                            type="submit"
+                                            iconProps={{ iconName: 'Send' }}
+                                            text="Send"
+                                        />
+                                    </Stack.Item>
+                                </Stack>
+                            </form>
+                        </Stack.Item>
+                    </Stack>
+                </Card.Item>
+            </FluentCard>
         </>
     );
 };
