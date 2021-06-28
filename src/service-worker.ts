@@ -90,29 +90,53 @@ self.addEventListener('message', (event) => {
 // Any other custom service worker logic can go here.
 async function updateStatus() {
     try {
-        const servicesKey = '';
         if (self.indexedDB) {
             console.log('IndexedDB is supported');
-            const request = self.indexedDB.open('SCApp', 3);
-            request.onsuccess = function () {
-                request.transaction?.objectStore('services').get('servicesKey');
+            const request = self.indexedDB.open('SCApp', 1);
+
+            request.onupgradeneeded = function (e: any) {
+                const db = e.target.result;
+
+                // A versionchange transaction is started automatically.
+                e.target.transaction.onerror = (e: any) => {
+                    console.log(e);
+                };
+
+                if (db.objectStoreNames.contains('services')) {
+                    db.deleteObjectStore('services');
+                }
+
+                db.createObjectStore('services');
+            };
+
+            request.onsuccess = function (e: any) {
+                const db = e.target.result;
+                const req = db.transaction('services').objectStore('services').get('servicesKey');
+
+                req.onsuccess = async () => {
+                    const servicesKey = req.result;
+
+                    // Actual updates
+                    if (process.env.API_GATEWAY && servicesKey) {
+                        const result = (await (
+                            await fetch(
+                                `${process.env.REACT_APP_API_GATEWAY}/${servicesKey}/${pageState ? 'online' : 'away'}`,
+                            )
+                        ).json()) as {
+                            code: number;
+                            error?: string;
+                        };
+                        if (result.code === 200) {
+                            console.log('status sync ok');
+                        } else {
+                            console.log('status sync err');
+                        }
+                    }
+                };
             };
             request.onerror = function () {
                 console.log('[onerror]', request.error);
             };
-        }
-        if (process.env.API_GATEWAY && servicesKey) {
-            const result = (await (
-                await fetch(`${process.env.REACT_APP_API_GATEWAY}/${servicesKey}/${pageState ? 'online' : 'away'}`)
-            ).json()) as {
-                code: number;
-                error?: string;
-            };
-            if (result.code === 200) {
-                console.log('status sync ok');
-            } else {
-                console.log('status sync err');
-            }
         }
     } catch (error) {
         console.log(error.message);

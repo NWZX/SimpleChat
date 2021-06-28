@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
-import { IRoom, IServiceKey, IUser } from '.';
+import { createContext, useContext, useEffect, useReducer, ReactNode, useState } from 'react';
+import { IRoom, IUser } from '.';
 import firebase from 'firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData, useDocumentData } from 'react-firebase-hooks/firestore';
@@ -19,35 +19,89 @@ const initialState: IApp = {
     rooms: undefined,
     currentProfile: undefined,
     currentRoom: undefined,
-    serviceKey: getServiceKey(),
+    serviceKey: undefined,
 };
 
-function getServiceKey(): string | undefined {
-    try {
-        if (!window.indexedDB) {
-            console.log(
-                "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
-            );
+function getServiceKey(): Promise<string | undefined> {
+    return new Promise(function (resolve, reject) {
+        try {
+            if (!window.indexedDB) {
+                console.log(
+                    "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
+                );
+            }
+            const request = window.indexedDB.open('SCApp', 1);
+            request.onupgradeneeded = function (e: any) {
+                const db = e.target.result;
+
+                // A versionchange transaction is started automatically.
+                e.target.transaction.onerror = (e: any) => {
+                    console.log(e);
+                };
+
+                if (db.objectStoreNames.contains('services')) {
+                    db.deleteObjectStore('services');
+                }
+
+                db.createObjectStore('services');
+            };
+
+            request.onsuccess = function (e: any) {
+                const db = e.target.result;
+                const req = db.transaction('services').objectStore('services').get('servicesKey');
+                req.onsuccess = () => {
+                    resolve(req.result);
+                };
+            };
+            request.onerror = (e) => {
+                resolve(undefined);
+                console.log(e);
+            };
+        } catch (error) {
+            reject(undefined);
         }
-        const request = window.indexedDB.open('SCApp', 3);
-        return request.transaction?.objectStore('services').get('servicesKey').result;
-    } catch (error) {
-        console.log(error);
-        return undefined;
-    }
+    });
 }
+
 function setServiceKey(value: string) {
-    try {
-        if (!window.indexedDB) {
-            console.log(
-                "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
-            );
+    return new Promise<void>(function (resolve, reject) {
+        try {
+            if (!window.indexedDB) {
+                console.log(
+                    "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
+                );
+            }
+            const request = window.indexedDB.open('SCApp', 1);
+            request.onupgradeneeded = function (e: any) {
+                const db = e.target.result;
+
+                // A versionchange transaction is started automatically.
+                e.target.transaction.onerror = (e: any) => {
+                    console.log(e);
+                };
+
+                if (db.objectStoreNames.contains('services')) {
+                    db.deleteObjectStore('services');
+                }
+
+                db.createObjectStore('services');
+            };
+
+            request.onsuccess = function (e: any) {
+                const db = e.target.result;
+                const req = db.transaction('services', 'readwrite').objectStore('services').put(value, 'servicesKey');
+                req.onsuccess = () => {
+                    resolve();
+                };
+            };
+
+            request.onerror = (e) => {
+                console.log(e);
+            };
+        } catch (error) {
+            reject(error);
         }
-        const request = window.indexedDB.open('SCApp', 3);
-        request.transaction?.objectStore('services').add(value, 'servicesKey');
-    } catch (error) {
-        console.log(error);
-    }
+    });
 }
 function reducer(state: IApp, action: { type: string; payload?: Record<string, any> }): IApp {
     switch (action.type) {
@@ -76,15 +130,12 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
     const db = firebase.firestore();
 
     const [data, dispatchData] = useReducer(reducer, initialState);
+    const [lock, setLock] = useState(false);
     const [user] = useAuthState(firebase.auth());
     const [userData] = useDocumentData<IUser>(user?.uid ? db.collection('users').doc(user.uid) : undefined, {
         idField: 'id',
         refField: 'ref',
     });
-    const [serviceKey] = useCollectionData<IServiceKey>(
-        !userData || data.serviceKey ? undefined : db.collection('serviceKeys').where('user', '==', userData.ref),
-        { idField: 'id' },
-    );
     const [roomsData] = useCollectionData<IRoom>(
         user?.uid ? db.collection('rooms').where('users', 'array-contains', user.uid) : undefined,
         {
@@ -96,12 +147,19 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
     useEffect(() => {
         (async () => {
             if (userData) {
-                if (!data.serviceKey && (!serviceKey || serviceKey.length == 0)) {
-                    const tempKey = await db.collection('serviceKeys').add({ user: userData });
-                    dispatchData({ type: 'set-service-key', payload: { serviceKey: tempKey.id } });
-                } else if (!data.serviceKey && serviceKey && serviceKey.length > 0) {
-                    dispatchData({ type: 'set-service-key', payload: { serviceKey: serviceKey[0].id } });
+                const serviceKey = await getServiceKey();
+                if (!data.serviceKey && !serviceKey && !lock) {
+                    setLock(true);
+                    const x = await db.collection('serviceKeys').where('user', '==', userData.ref).get();
+                    if (!x.empty) {
+                        dispatchData({ type: 'set-service-key', payload: { serviceKey: x.docs[0].id } });
+                    } else {
+                        const tempKey = await db.collection('serviceKeys').add({ user: userData.ref });
+                        dispatchData({ type: 'set-service-key', payload: { serviceKey: tempKey.id } });
+                    }
+                    setLock(false);
                 }
+
                 dispatchData({ type: 'set-user', payload: { user: userData } });
                 dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
             } else {
@@ -116,7 +174,8 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
                 dispatchData({ type: 'set-rooms', payload: { rooms: undefined } });
             }
         })();
-    }, [userData, roomsData, serviceKey, data.serviceKey, db]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userData, roomsData, db]);
 
     return (
         <AppContext.Provider value={[data, (t, p) => dispatchData({ type: t, payload: p })]}>
