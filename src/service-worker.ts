@@ -117,12 +117,12 @@ async function updateStatus() {
                     const servicesKey = req.result;
 
                     // Actual updates
-                    if (process.env.API_GATEWAY && servicesKey) {
-                        const result = (await (
+                    if (process.env.REACT_APP_API_GATEWAY && servicesKey) {
+                        const result = await(
                             await fetch(
                                 `${process.env.REACT_APP_API_GATEWAY}/${servicesKey}/${pageState ? 'online' : 'away'}`,
-                            )
-                        ).json()) as {
+                            ),
+                        ).json() as {
                             code: number;
                             error?: string;
                         };
