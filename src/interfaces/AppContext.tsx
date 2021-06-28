@@ -19,9 +19,36 @@ const initialState: IApp = {
     rooms: undefined,
     currentProfile: undefined,
     currentRoom: undefined,
-    serviceKey: localStorage.getItem('serviceKey') || undefined,
+    serviceKey: getServiceKey(),
 };
 
+function getServiceKey(): string | undefined {
+    try {
+        if (!window.indexedDB) {
+            console.log(
+                "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
+            );
+        }
+        const request = window.indexedDB.open('SCApp', 3);
+        return request.transaction?.objectStore('services').get('servicesKey').result;
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
+}
+function setServiceKey(value: string) {
+    try {
+        if (!window.indexedDB) {
+            console.log(
+                "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
+            );
+        }
+        const request = window.indexedDB.open('SCApp', 3);
+        request.transaction?.objectStore('services').add(value, 'servicesKey');
+    } catch (error) {
+        console.log(error);
+    }
+}
 function reducer(state: IApp, action: { type: string; payload?: Record<string, any> }): IApp {
     switch (action.type) {
         case 'set-user':
@@ -33,7 +60,7 @@ function reducer(state: IApp, action: { type: string; payload?: Record<string, a
         case 'set-room':
             return { ...state, currentRoom: action.payload?.currentRoom };
         case 'set-service-key':
-            localStorage.setItem('serviceKey', action.payload?.serviceKey);
+            setServiceKey(action.payload?.serviceKey);
             return { ...state, serviceKey: action.payload?.serviceKey };
         default:
             throw new Error();

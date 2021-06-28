@@ -90,8 +90,18 @@ self.addEventListener('message', (event) => {
 // Any other custom service worker logic can go here.
 async function updateStatus() {
     try {
-        const servicesKey = localStorage.getItem('servicesKey');
-        if (process.env.API_GATEWAY) {
+        const servicesKey = '';
+        if (self.indexedDB) {
+            console.log('IndexedDB is supported');
+            const request = self.indexedDB.open('SCApp', 3);
+            request.onsuccess = function () {
+                request.transaction?.objectStore('services').get('servicesKey');
+            };
+            request.onerror = function () {
+                console.log('[onerror]', request.error);
+            };
+        }
+        if (process.env.API_GATEWAY && servicesKey) {
             const result = (await (
                 await fetch(`${process.env.REACT_APP_API_GATEWAY}/${servicesKey}/${pageState ? 'online' : 'away'}`)
             ).json()) as {
