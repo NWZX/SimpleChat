@@ -56,19 +56,25 @@ const ProfileView = ({}: Props): JSX.Element => {
             .limit(20),
     );
 
+    const timestamp = firebase.firestore.Timestamp.now().toMillis();
+    let coin: Record<string, any> = {};
+    const lastActivity = userGet?.status.timestamp || 0;
+
+    if (userGet) {
+        if (userGet.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {
+            coin = { presence: PersonaPresence.online };
+        } else if (userGet.status.type == 'away' && timestamp - lastActivity < 24 * 3600 * 1000) {
+            coin = { presence: PersonaPresence.online, isOutOfOffice: true };
+        } else if (userGet.status.type) {
+            coin = { presence: PersonaPresence.offline };
+        }
+    }
+
     return (
         <>
             <FluentCard tokens={{ childrenMargin: 10, padding: 10, maxWidth: 'none' }} style={{ margin: 10 }}>
                 <Card.Item align="center">
-                    <Persona
-                        imageInitials={userGet?.username[0]}
-                        hidePersonaDetails
-                        presence={
-                            firebase.firestore.Timestamp.now().toMillis() - (user?.status.timestamp || 0) < 300 * 1000
-                                ? PersonaPresence.online
-                                : PersonaPresence.offline
-                        }
-                    />
+                    <Persona imageInitials={userGet?.username[0]} hidePersonaDetails {...coin} />
                 </Card.Item>
                 <Card.Item align="center">
                     {currentRoom?.room.id != user?.id ? (

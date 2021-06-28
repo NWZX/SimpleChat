@@ -22,39 +22,47 @@ ReactDOM.render(
 if (process.env.NODE_ENV == 'production') {
     serviceWorkerRegistration.register();
 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-            // Check if periodicSync is supported
-            if ('periodicSync' in registration) {
-                // Request permission
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                //@ts-ignore
-                navigator.permissions.query({ name: 'periodic-background-sync' }).then((status) => {
-                    if (status.state === 'granted') {
-                        try {
-                            // Register new sync every 24 hours
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            //@ts-ignore
-                            registration.periodicSync.register('online', {
-                                minInterval: 60 * 1000, // 1 minutes
-                            });
-                            console.log('Periodic background sync registered!');
-                        } catch (e) {
-                            console.error(`Periodic background sync failed:\n${e}`);
-                        }
-                    } else {
-                        // Periodic background sync cannot be used.
-                    }
-                });
+    (async function registerSync() {
+        const registration = (await navigator.serviceWorker.ready) as ServiceWorkerRegistration & { periodicSync: any };
+        try {
+            console.log('Periodic Sync registration!');
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+            if (status.state !== 'granted') {
+                throw new Error('');
             }
+            await registration.periodicSync.register('online', {
+                minInterval: 43200000,
+            });
+            console.log('Periodic Sync registered!');
+        } catch {
+            console.log('Periodic Sync could not be registered!');
+        }
+    })();
+
+    (async function requestPushPermission() {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            // 🚀
+        } else {
+            // 😢
+        }
+    })();
+
+    setInterval(async () => {
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.active?.postMessage({
+                type: 'STATUS_UPDATE',
+            });
         });
-    }
+    }, 270 * 1000);
 
     function handleVisibilityChange() {
         navigator.serviceWorker.ready.then((registration) => {
             if (document.visibilityState === 'hidden') {
                 registration.active?.postMessage({
-                    type: 'PAGE_CLOSE',
+                    type: 'PAGE_HIDDEN',
                 });
             } else {
                 registration.active?.postMessage({
@@ -63,8 +71,8 @@ if (process.env.NODE_ENV == 'production') {
             }
         });
     }
-
     document.addEventListener('visibilitychange', handleVisibilityChange, false);
+
     window.onbeforeunload = function () {
         navigator.serviceWorker.ready.then((registration) => {
             registration.active?.postMessage({

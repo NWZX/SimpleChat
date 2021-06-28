@@ -47,7 +47,7 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
 
     if (otherUser?.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {
         coin = { presence: PersonaPresence.online };
-    } else if (otherUser?.status.type == 'away' && timestamp - lastActivity < 3600 * 1000) {
+    } else if (otherUser?.status.type == 'away' && timestamp - lastActivity < 24 * 3600 * 1000) {
         coin = { presence: PersonaPresence.online, isOutOfOffice: true };
     } else if (otherUser?.status.type) {
         coin = { presence: PersonaPresence.offline };

@@ -7,16 +7,25 @@
 // code you'd like.
 // You can also remove this file if you'd prefer not to use a
 // service worker, and the Workbox build step will be skipped.
-
 import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+importScripts('https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.6.8/firebase-messaging.js');
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+const fb = firebase as any;
 
 declare const self: ServiceWorkerGlobalScope;
 let pageState: number;
-process.env.REACT_APP_FIREBASE_CONFIG;
+
+if (process.env.REACT_APP_FIREBASE_CONFIG) {
+    fb.initializeApp(JSON.parse(process.env.REACT_APP_FIREBASE_CONFIG));
+}
+const messaging = fb.messaging();
 
 clientsClaim();
 
@@ -82,12 +91,36 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'PAGE_OPEN') {
         pageState = 1;
     }
+    if (event.data && event.data.type === 'PAGE_HIDDEN') {
+        pageState = 0;
+    }
     if (event.data && event.data.type === 'PAGE_CLOSE') {
         pageState = 0;
+        updateStatus();
+    }
+    if (event.data && event.data.type === 'STATUS_UPDATE') {
+        updateStatus();
     }
 });
 
 // Any other custom service worker logic can go here.
+
+messaging.onBackgroundMessage((payload: any) => {
+    try {
+        console.log('[firebase-messaging-sw.js] Received background message ', payload);
+        // Customize notification here
+        const notificationTitle = 'Background Message Title';
+        const notificationOptions = {
+            body: 'Background Message body.',
+            icon: '/firebase-logo.png',
+        };
+
+        self.registration.showNotification(notificationTitle, notificationOptions);
+    } catch (error) {
+        console.log(error);
+    }
+});
+
 async function updateStatus() {
     try {
         if (self.indexedDB) {
@@ -147,7 +180,7 @@ async function updateStatus() {
 self.addEventListener('periodicsync', (event: any) => {
     console.log(event.tag);
     if (event.tag === 'online') {
-        console.log('Fetching news in the background!');
+        console.log('Update status in background!');
         event.waitUntil(updateStatus());
         //for one off event
         //registration.periodicSync.unregister('periodicsync');

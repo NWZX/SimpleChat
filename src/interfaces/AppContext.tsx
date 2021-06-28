@@ -13,6 +13,7 @@ interface IApp {
     currentProfile?: string;
     currentRoom?: { room: IRoom; page: 'profile' | 'chat' };
     serviceKey?: string;
+    ready?: boolean;
 }
 const initialState: IApp = {
     user: undefined,
@@ -20,6 +21,7 @@ const initialState: IApp = {
     currentProfile: undefined,
     currentRoom: undefined,
     serviceKey: undefined,
+    ready: false,
 };
 
 function getServiceKey(): Promise<string | undefined> {
@@ -27,7 +29,7 @@ function getServiceKey(): Promise<string | undefined> {
         try {
             if (!window.indexedDB) {
                 console.log(
-                    "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
+                    'Your browser does not support a stable version of IndexedDB. Some features will not be available.',
                 );
             }
             const request = window.indexedDB.open('SCApp', 1);
@@ -68,7 +70,7 @@ function setServiceKey(value: string) {
         try {
             if (!window.indexedDB) {
                 console.log(
-                    "Votre navigateur ne supporte pas une version stable d'IndexedDB. Quelques fonctionnalités ne seront pas disponibles.",
+                    'Your browser does not support a stable version of IndexedDB. Some features will not be available.',
                 );
             }
             const request = window.indexedDB.open('SCApp', 1);
@@ -105,6 +107,8 @@ function setServiceKey(value: string) {
 }
 function reducer(state: IApp, action: { type: string; payload?: Record<string, any> }): IApp {
     switch (action.type) {
+        case 'set-ready':
+            return { ...state, ready: action.payload?.ready };
         case 'set-user':
             return { ...state, user: action.payload?.user };
         case 'set-rooms':
@@ -131,11 +135,14 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
     const [data, dispatchData] = useReducer(reducer, initialState);
     const [lock, setLock] = useState(false);
-    const [user] = useAuthState(firebase.auth());
-    const [userData] = useDocumentData<IUser>(user?.uid ? db.collection('users').doc(user.uid) : undefined, {
-        idField: 'id',
-        refField: 'ref',
-    });
+    const [user, loadUser] = useAuthState(firebase.auth());
+    const [userData, loadUserData, errorUserData] = useDocumentData<IUser>(
+        user?.uid ? db.collection('users').doc(user.uid) : undefined,
+        {
+            idField: 'id',
+            refField: 'ref',
+        },
+    );
     const [roomsData] = useCollectionData<IRoom>(
         user?.uid ? db.collection('rooms').where('users', 'array-contains', user.uid) : undefined,
         {
@@ -146,36 +153,55 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
     useEffect(() => {
         (async () => {
-            if (userData) {
-                const serviceKey = await getServiceKey();
-                if (!data.serviceKey && !serviceKey && !lock) {
-                    setLock(true);
-                    const x = await db.collection('serviceKeys').where('user', '==', userData.ref).get();
-                    if (!x.empty) {
-                        dispatchData({ type: 'set-service-key', payload: { serviceKey: x.docs[0].id } });
-                    } else {
-                        const tempKey = await db.collection('serviceKeys').add({ user: userData.ref });
-                        dispatchData({ type: 'set-service-key', payload: { serviceKey: tempKey.id } });
-                    }
-                    setLock(false);
-                }
+            try {
+                //USER
+                if (user && userData) {
+                    const serviceKey = await getServiceKey();
+                    if (!data.serviceKey && !serviceKey && !lock) {
+                        setLock(true);
+                        if (userData.serviceKey) {
+                            dispatchData({ type: 'set-service-key', payload: { serviceKey: userData.serviceKey } });
+                        } else {
+                            const currentToken = await firebase
+                                .messaging()
+                                .getToken({ vapidKey: process.env.REACT_APP_PUSH_KEY });
+                            const uid = new MediaDeviceInfo().deviceId;
 
-                dispatchData({ type: 'set-user', payload: { user: userData } });
-                dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
-            } else {
+                            userData.ref.set(
+                                { serviceKey: uid, pushId: firebase.firestore.FieldValue.arrayUnion(currentToken) },
+                                { merge: true },
+                            );
+                            dispatchData({ type: 'set-service-key', payload: { serviceKey: uid } });
+                        }
+                        setLock(false);
+                    }
+
+                    dispatchData({ type: 'set-user', payload: { user: userData } });
+                    dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
+                } else {
+                    dispatchData({ type: 'set-user', payload: { user: undefined } });
+                    dispatchData({ type: 'set-profile', payload: { currentProfile: undefined } });
+                }
+                //ROOM
+                if (roomsData) {
+                    dispatchData({ type: 'set-rooms', payload: { rooms: roomsData } });
+                } else {
+                    dispatchData({ type: 'set-rooms', payload: { rooms: undefined } });
+                }
+            } catch (error) {
                 dispatchData({ type: 'set-user', payload: { user: undefined } });
                 dispatchData({ type: 'set-profile', payload: { currentProfile: undefined } });
-            }
-        })();
-        (async () => {
-            if (roomsData) {
-                dispatchData({ type: 'set-rooms', payload: { rooms: roomsData } });
-            } else {
                 dispatchData({ type: 'set-rooms', payload: { rooms: undefined } });
             }
         })();
+        if (user && !loadUserData && !errorUserData && data.user) {
+            dispatchData({ type: 'set-ready', payload: { ready: true } });
+        }
+        if (!user && !loadUser && !loadUserData && !errorUserData) {
+            dispatchData({ type: 'set-ready', payload: { ready: true } });
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userData, roomsData, db]);
+    }, [userData, roomsData, db, user, loadUser, loadUserData, errorUserData]);
 
     return (
         <AppContext.Provider value={[data, (t, p) => dispatchData({ type: t, payload: p })]}>

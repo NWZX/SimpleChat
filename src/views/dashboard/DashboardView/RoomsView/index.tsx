@@ -49,9 +49,10 @@ const RoomsView = ({}: Props): JSX.Element => {
                                 fullWidth
                                 onClick={() => {
                                     const timestamp = firebase.firestore.Timestamp.now().toMillis();
-                                    user?.ref.set({ status: { type: 'online', timestamp } } as Partial<IUser>, {
+                                    user?.ref.set({ status: { type: 'offline', timestamp } } as Partial<IUser>, {
                                         merge: true,
                                     });
+                                    //HERE ALL SERVICE MUST BE REMOVE
                                     firebase.auth().signOut();
                                 }}
                             />

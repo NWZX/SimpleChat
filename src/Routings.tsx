@@ -5,20 +5,48 @@ import RegisterView from 'src/views/auth/RegisterView';
 import NotFoundView from 'src/views/404/NotFoundView';
 import DashboardView from 'src/views/dashboard/DashboardView';
 import { useApp } from './interfaces/AppContext';
+import Loading from './views/Loading';
 
 const Routings = (): JSX.Element | null => {
     const appData = useApp();
+
+    const isReady = (elem: JSX.Element, needAuth: boolean, reverse = false): JSX.Element => {
+        if (appData.ready) {
+            if (reverse) {
+                if (needAuth && appData.user) {
+                    return <Navigate to="/" />;
+                } else {
+                    return elem;
+                }
+            }
+
+            if (needAuth && appData.user) {
+                return elem;
+            } else if (!needAuth) {
+                return elem;
+            } else {
+                return <Navigate to="/login" />;
+            }
+        } else {
+            return <Loading title="Loading..." />;
+        }
+    };
 
     const routes = [
         {
             path: '/',
             element: <MainLayout />,
             children: [
-                { path: 'login', element: appData.user ? <Navigate to="/" /> : <LoginView title="Login" /> },
-                { path: 'register', element: appData.user ? <Navigate to="/" /> : <RegisterView title="Register" /> },
-                { path: 'logout', element: <Navigate to="/login" /> },
+                {
+                    path: 'login',
+                    element: isReady(<LoginView title="Login" />, true, true),
+                },
+                {
+                    path: 'register',
+                    element: isReady(<RegisterView title="Register" />, true, true),
+                },
                 { path: '404', element: <NotFoundView title="Not Found" /> },
-                { path: '/', element: appData.user ? <DashboardView title="Dashboard" /> : <Navigate to="/login" /> },
+                { path: '/', element: isReady(<DashboardView title="Dashboard" />, true) },
                 { path: '*', element: <Navigate to="/404" /> },
             ],
         },
