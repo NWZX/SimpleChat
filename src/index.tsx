@@ -44,9 +44,7 @@ if (process.env.NODE_ENV == 'production') {
     (async function requestPushPermission() {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            // 🚀
         } else {
-            // 😢
         }
     })();
 

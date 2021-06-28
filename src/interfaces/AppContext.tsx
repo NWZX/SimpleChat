@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createContext, useContext, useEffect, useReducer, ReactNode, useState } from 'react';
+import { DeviceUUID } from 'device-uuid';
 import { IRoom, IUser } from '.';
 import firebase from 'firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -162,10 +163,10 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
                         if (userData.serviceKey) {
                             dispatchData({ type: 'set-service-key', payload: { serviceKey: userData.serviceKey } });
                         } else {
-                            const currentToken = await firebase
-                                .messaging()
-                                .getToken({ vapidKey: process.env.REACT_APP_PUSH_KEY });
-                            const uid = new MediaDeviceInfo().deviceId;
+                            const key = process.env.REACT_APP_PUSH_KEY;
+                            const currentToken = await firebase.messaging().getToken({ vapidKey: key });
+                            const uid = new DeviceUUID().get();
+                            console.log(uid);
 
                             userData.ref.set(
                                 { serviceKey: uid, pushId: firebase.firestore.FieldValue.arrayUnion(currentToken) },
