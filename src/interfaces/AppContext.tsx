@@ -156,29 +156,28 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
         (async () => {
             try {
                 //USER
-                if (user && userData) {
+                if (user && userData && !lock) {
+                    setLock(true);
                     const serviceKey = await getServiceKey();
-                    if (!data.serviceKey && !serviceKey && !lock) {
-                        setLock(true);
+                    if (!data.serviceKey && !serviceKey) {
                         if (userData.serviceKey) {
                             dispatchData({ type: 'set-service-key', payload: { serviceKey: userData.serviceKey } });
                         } else {
                             const key = process.env.REACT_APP_PUSH_KEY;
                             const currentToken = await firebase.messaging().getToken({ vapidKey: key });
                             const uid = new DeviceUUID().get();
-                            console.log(uid);
 
-                            userData.ref.set(
+                            await userData.ref.set(
                                 { serviceKey: uid, pushId: firebase.firestore.FieldValue.arrayUnion(currentToken) },
                                 { merge: true },
                             );
                             dispatchData({ type: 'set-service-key', payload: { serviceKey: uid } });
                         }
-                        setLock(false);
                     }
 
                     dispatchData({ type: 'set-user', payload: { user: userData } });
                     dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
+                    setLock(false);
                 } else {
                     dispatchData({ type: 'set-user', payload: { user: undefined } });
                     dispatchData({ type: 'set-profile', payload: { currentProfile: undefined } });
