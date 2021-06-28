@@ -25,8 +25,9 @@
   },
   "include": [
     "./src"
-  ],
+   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "firebase-messaging-sw.js"
   ]
 }

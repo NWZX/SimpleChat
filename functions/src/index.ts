@@ -29,9 +29,9 @@ app.get('/updateStatus/:id/:status', async (req, res) => {
         });
         const data = Params.check(req.params);
 
-        const snap = await admin.firestore().collection('serviceKeys').doc(data.id).get();
-        if (snap.exists) {
-            (snap.data() as { user: admin.firestore.DocumentReference }).user.set(
+        const snap = await admin.firestore().collection('users').where("serviceKey", "array-contains", data.id).get();
+        if (!snap.empty) {
+            snap.docs[0].ref.set(
                 { status: { type: data.status, timestamp: admin.firestore.Timestamp.now().toMillis() } },
                 { merge: true },
             );
@@ -61,11 +61,11 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
                     1,
                 ).length != 1
             ) {
-                throw new Error();
+                throw new Error("Invalid length");
             }
 
             //Get required users
-            const senderSnap = await admin.firestore().collection('users').doc('senderId').get();
+            const senderSnap = await admin.firestore().collection('users').doc(message.senderId).get();
             const sender = senderSnap.data() as IUser;
             const users = await getUsersByIds(room.users);
 

@@ -26,3 +26,4 @@ yarn-error.log*
 .eslintcache
 package-lock.json
 /.firebase
+src/firebase-messaging-sw.js
