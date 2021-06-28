@@ -118,11 +118,12 @@ async function updateStatus() {
 
                     // Actual updates
                     if (process.env.REACT_APP_API_GATEWAY && servicesKey) {
-                        const result = (await (
-                            await fetch(
-                                `${process.env.REACT_APP_API_GATEWAY}/${servicesKey}/${pageState ? 'online' : 'away'}`,
-                            )
-                        ).json()) as {
+                        const raw = await fetch(
+                            `${process.env.REACT_APP_API_GATEWAY}/updateStatus/${servicesKey}/${
+                                pageState ? 'online' : 'away'
+                            }`,
+                        );
+                        const result = (await raw.json()) as {
                             code: number;
                             error?: string;
                         };
