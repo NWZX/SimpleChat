@@ -156,10 +156,10 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
         (async () => {
             try {
                 //USER
-                if (user && userData && !lock) {
-                    setLock(true);
+                if (user && userData) {
                     const serviceKey = await getServiceKey();
-                    if (!data.serviceKey && !serviceKey) {
+                    if (!data.serviceKey && !serviceKey && !lock) {
+                        setLock(true);
                         if (userData.serviceKey) {
                             dispatchData({ type: 'set-service-key', payload: { serviceKey: userData.serviceKey } });
                         } else {
