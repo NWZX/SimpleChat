@@ -25,6 +25,10 @@ if (firebase.apps.length === 0) {
             }
             console.log(err);
         });
+    firebase.messaging().onMessage((payload) => {
+        console.log('Message received. ', payload);
+        // ...
+    });
 }
 
 const App = (): JSX.Element => {
