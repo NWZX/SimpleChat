@@ -79,11 +79,10 @@ self.addEventListener('message', (event) => {
         self.skipWaiting();
     }
     if (event.data && event.data.type === 'PAGE_OPEN') {
-        pageState[1] = pageState[0];
+        
         pageState[0] = 1;
     }
     if (event.data && event.data.type === 'PAGE_HIDDEN') {
-        pageState[1] = pageState[0];
         pageState[0] = 0;
     }
     if (event.data && event.data.type === 'PAGE_CLOSE') {
@@ -92,7 +91,9 @@ self.addEventListener('message', (event) => {
     }
     if (event.data && event.data.type === 'STATUS_UPDATE') {
         if (pageState[0] != pageState[1]) {
-            updateStatus();
+            updateStatus().then((v) => {
+                if(v) pageState[1] = pageState[0];
+            });
         }
     }
 });
@@ -100,58 +101,67 @@ self.addEventListener('message', (event) => {
 // Any other custom service worker logic can go here.
 
 async function updateStatus() {
-    try {
-        if (self.indexedDB) {
-            console.log('IndexedDB is supported');
-            const request = self.indexedDB.open('SCApp', 1);
+    return new Promise<boolean>(function (resolve, reject) {
+        try {
+            if (self.indexedDB) {
+                console.log('IndexedDB is supported');
+                const request = self.indexedDB.open('SCApp', 1);
 
-            request.onupgradeneeded = function (e: any) {
-                const db = e.target.result;
+                request.onupgradeneeded = function (e: any) {
+                    const db = e.target.result;
 
-                // A versionchange transaction is started automatically.
-                e.target.transaction.onerror = (e: any) => {
-                    console.log(e);
+                    // A versionchange transaction is started automatically.
+                    e.target.transaction.onerror = (e: any) => {
+                        console.log(e);
+                    };
+
+                    if (db.objectStoreNames.contains('services')) {
+                        db.deleteObjectStore('services');
+                    }
+
+                    db.createObjectStore('services');
                 };
 
-                if (db.objectStoreNames.contains('services')) {
-                    db.deleteObjectStore('services');
-                }
+                request.onsuccess = function (e: any) {
+                    const db = e.target.result;
+                    const req = db.transaction('services').objectStore('services').get('servicesKey');
 
-                db.createObjectStore('services');
-            };
+                    req.onsuccess = async () => {
+                        const servicesKey = req.result;
 
-            request.onsuccess = function (e: any) {
-                const db = e.target.result;
-                const req = db.transaction('services').objectStore('services').get('servicesKey');
-
-                req.onsuccess = async () => {
-                    const servicesKey = req.result;
-
-                    // Actual updates
-                    if (process.env.REACT_APP_API_GATEWAY && servicesKey) {
-                        const raw = await fetch(
-                            `${process.env.REACT_APP_API_GATEWAY}/updateStatus/${servicesKey}/${
-                                pageState[0] ? 'online' : 'away'
-                            }`,
-                        );
-                        const result = (await raw.json()) as {
-                            code: number;
-                            error?: string;
-                        };
-                        if (result.code === 200) {
-                            console.log('status sync ok');
-                        } else {
-                            console.log('status sync err');
+                        // Actual updates
+                        if (process.env.REACT_APP_API_GATEWAY && servicesKey) {
+                            const raw = await fetch(
+                                `${process.env.REACT_APP_API_GATEWAY}/updateStatus/${servicesKey}/${pageState[0] ? 'online' : 'away'
+                                }`,
+                            );
+                            const result = (await raw.json()) as {
+                                code: number;
+                                error?: string;
+                            };
+                            if (result.code === 200) {
+                                console.log('status sync ok');
+                                resolve(true);
+                            } else {
+                                console.log('status sync err');
+                                resolve(false);
+                            }
                         }
+                    };
+                    req.onerror = function (e: any) {
+                        console.log('[onerror]', request.error);
+                        resolve(false);
                     }
                 };
-            };
-            request.onerror = function () {
-                console.log('[onerror]', request.error);
-            };
+                request.onerror = function () {
+                    console.log('[onerror]', request.error);
+                    resolve(false);
+                };
+            }
+        } catch (error) {
+            console.log(error.message);
+            reject(error);
         }
-    } catch (error) {
-        console.log(error.message);
     }
 }
 
