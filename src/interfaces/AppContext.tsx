@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { createContext, useContext, useEffect, useReducer, ReactNode, useState } from 'react';
-import { DeviceUUID } from 'device-uuid';
+import FingerprintJS, { Agent } from '@fingerprintjs/fingerprintjs';
 import { IRoom, IUser } from '.';
 import firebase from 'firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -14,6 +14,7 @@ interface IApp {
     currentProfile?: string;
     currentRoom?: { room: IRoom; page: 'profile' | 'chat' };
     serviceKey?: string;
+    fpService: Promise<Agent>;
     ready?: boolean;
 }
 const initialState: IApp = {
@@ -22,6 +23,7 @@ const initialState: IApp = {
     currentProfile: undefined,
     currentRoom: undefined,
     serviceKey: undefined,
+    fpService: FingerprintJS.load(),
     ready: false,
 };
 
@@ -156,12 +158,19 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
         (async () => {
             try {
                 //USER
-                if (user && userData) {
+                if (user && userData && roomsData) {
                     const serviceKey = await getServiceKey();
                     if (!data.serviceKey && !serviceKey && !lock) {
                         setLock(true);
-                        const uid = new DeviceUUID().get();
+                        const fp = await data.fpService;
+                        const uid = (await fp.get()).visitorId;
                         if (userData.serviceKey && userData.serviceKey.includes(uid)) {
+                            await userData.ref.set(
+                                {
+                                    serviceKey: firebase.firestore.FieldValue.arrayUnion(uid),
+                                },
+                                { merge: true },
+                            );
                             dispatchData({ type: 'set-service-key', payload: { serviceKey: uid } });
                         } else {
                             const key = process.env.REACT_APP_PUSH_KEY;
@@ -180,15 +189,11 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
 
                     dispatchData({ type: 'set-user', payload: { user: userData } });
                     dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
+                    dispatchData({ type: 'set-rooms', payload: { rooms: roomsData } });
                     setLock(false);
                 } else {
                     dispatchData({ type: 'set-user', payload: { user: undefined } });
                     dispatchData({ type: 'set-profile', payload: { currentProfile: undefined } });
-                }
-                //ROOM
-                if (roomsData) {
-                    dispatchData({ type: 'set-rooms', payload: { rooms: roomsData } });
-                } else {
                     dispatchData({ type: 'set-rooms', payload: { rooms: undefined } });
                 }
             } catch (error) {

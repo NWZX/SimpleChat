@@ -14,7 +14,8 @@ import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
-let pageState: number;
+//[0] : active | [1]: OldActive
+let pageState: [number, number] = [1, 1];
 
 clientsClaim();
 
@@ -78,17 +79,21 @@ self.addEventListener('message', (event) => {
         self.skipWaiting();
     }
     if (event.data && event.data.type === 'PAGE_OPEN') {
-        pageState = 1;
+        pageState[1] = pageState[0];
+        pageState[0] = 1;
     }
     if (event.data && event.data.type === 'PAGE_HIDDEN') {
-        pageState = 0;
+        pageState[1] = pageState[0];
+        pageState[0] = 0;
     }
     if (event.data && event.data.type === 'PAGE_CLOSE') {
-        pageState = 0;
+        pageState = [0, 1];
         updateStatus();
     }
     if (event.data && event.data.type === 'STATUS_UPDATE') {
-        updateStatus();
+        if (pageState[0] != pageState[1]) {
+            updateStatus();
+        }
     }
 });
 
@@ -126,7 +131,7 @@ async function updateStatus() {
                     if (process.env.REACT_APP_API_GATEWAY && servicesKey) {
                         const raw = await fetch(
                             `${process.env.REACT_APP_API_GATEWAY}/updateStatus/${servicesKey}/${
-                                pageState ? 'online' : 'away'
+                                pageState[0] ? 'online' : 'away'
                             }`,
                         );
                         const result = (await raw.json()) as {

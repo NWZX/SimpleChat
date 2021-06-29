@@ -54,7 +54,7 @@ if (process.env.NODE_ENV == 'production') {
                 type: 'STATUS_UPDATE',
             });
         });
-    }, 270 * 1000);
+    }, 15 * 1000);
 
     function handleVisibilityChange() {
         navigator.serviceWorker.ready.then((registration) => {
