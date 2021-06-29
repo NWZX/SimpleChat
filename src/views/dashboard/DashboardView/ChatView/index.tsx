@@ -99,8 +99,8 @@ const ChatView = ({}: Props): JSX.Element => {
                                         />
                                     </Stack.Item>
                                 ))}
+                                <div ref={ref}></div>
                             </Stack>
-                            <div ref={ref}></div>
                         </Stack.Item>
                         <Stack.Item>
                             <form onSubmit={handleSubmit(handleSend)}>
