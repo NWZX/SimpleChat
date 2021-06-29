@@ -27,7 +27,10 @@ if (firebase.apps.length === 0) {
         });
     firebase.messaging().onMessage((payload) => {
         console.log('Message received. ', payload);
-        // ...
+        if (document.visibilityState === 'hidden') {
+            const { title, ...notificationOptions } = payload.notification;
+            const n = new Notification(title, notificationOptions);
+        }
     });
 }
 
