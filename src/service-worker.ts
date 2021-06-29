@@ -79,7 +79,6 @@ self.addEventListener('message', (event) => {
         self.skipWaiting();
     }
     if (event.data && event.data.type === 'PAGE_OPEN') {
-        
         pageState[0] = 1;
     }
     if (event.data && event.data.type === 'PAGE_HIDDEN') {
@@ -92,7 +91,7 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'STATUS_UPDATE') {
         if (pageState[0] != pageState[1]) {
             updateStatus().then((v) => {
-                if(v) pageState[1] = pageState[0];
+                if (v) pageState[1] = pageState[0];
             });
         }
     }
@@ -132,7 +131,8 @@ async function updateStatus() {
                         // Actual updates
                         if (process.env.REACT_APP_API_GATEWAY && servicesKey) {
                             const raw = await fetch(
-                                `${process.env.REACT_APP_API_GATEWAY}/updateStatus/${servicesKey}/${pageState[0] ? 'online' : 'away'
+                                `${process.env.REACT_APP_API_GATEWAY}/updateStatus/${servicesKey}/${
+                                    pageState[0] ? 'online' : 'away'
                                 }`,
                             );
                             const result = (await raw.json()) as {
@@ -148,10 +148,10 @@ async function updateStatus() {
                             }
                         }
                     };
-                    req.onerror = function (e: any) {
+                    req.onerror = function () {
                         console.log('[onerror]', request.error);
                         resolve(false);
-                    }
+                    };
                 };
                 request.onerror = function () {
                     console.log('[onerror]', request.error);
@@ -162,7 +162,7 @@ async function updateStatus() {
             console.log(error.message);
             reject(error);
         }
-    }
+    });
 }
 
 self.addEventListener('periodicsync', (event: any) => {
