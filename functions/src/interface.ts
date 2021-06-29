@@ -8,7 +8,7 @@ export interface IUser {
     ref: firebase.firestore.DocumentReference;
     status: { type: string; timestamp: number };
 
-    serviceKey: string;
+    serviceKey: string[];
     pushId: string[];
 
     username: string;

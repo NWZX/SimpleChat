@@ -55,12 +55,8 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
         const snapRoom = await admin.firestore().collection('rooms').doc(message.roomId).get();
         const room = { ...(snapRoom.data() as IRoom), id: snapRoom.id, ref: snapRoom.ref };
         if (room.users.length > 1) {
-            if (
-                room.users.splice(
-                    room.users.findIndex((v) => v == message.senderId),
-                    1,
-                ).length != 1
-            ) {
+            const id = room.users.findIndex((v) => v == message.senderId)
+            if (id != -1 && room.users.splice(id, 1).length != 1) {
                 throw new Error("Invalid length");
             }
 
@@ -79,21 +75,31 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
                 }
             });
 
+            if (tokens.length < 1) {
+                throw new Error('No valid user found');
+            }
+
             //Send Notification
-            admin.messaging().sendMulticast({
+            const r = await admin.messaging().sendMulticast({
                 tokens: tokens,
+                notification: {
+                    title: sender.username,
+                    body: message.content.slice(0, 100)
+                },
                 webpush: {
                     notification: {
                         title: sender.username,
                         body: message.content.slice(0, 100),
                         timestamp: message.createdAt,
-                        requireInteraction: true,
-                        vibrate: 200,
                     },
                     headers: { Urgency: 'normal' },
                     fcmOptions: { link: 'https://simplechat-37da5.web.app/' },
                 },
             });
+            
+            functions.logger.log("t :", tokens);
+            functions.logger.log("r :", r.responses);
+            functions.logger.log("s: ", r.successCount, " e: ", r.failureCount);
         }
     } catch (error) {
         functions.logger.error(error.message);
