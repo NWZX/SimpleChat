@@ -40,6 +40,6 @@ messaging.onBackgroundMessage(async function (payload) {
 self.addEventListener('notificationclick', () => {
     nofiticationObj = {};
 });
-self.addEventListener('notificationclose', () => {
-    nofiticationObj = {};
-});
+// self.addEventListener('notificationclose', () => {
+//     nofiticationObj = {};
+// });
