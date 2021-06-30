@@ -47,6 +47,13 @@ const Routings = (): JSX.Element | null => {
                 },
                 { path: '404', element: <NotFoundView title="Not Found" /> },
                 { path: '/', element: isReady(<DashboardView title="Dashboard" />, true) },
+
+                { path: '/settings', element: <Navigate to="/" state={{ action: 'open-settings' }} /> },
+                {
+                    path: '/contact/new',
+                    element: <Navigate to="/" state={{ action: 'open-contact-new' }} />,
+                },
+                { path: '/post/new', element: <Navigate to="/" state={{ action: 'open-post-new' }} /> },
                 { path: '*', element: <Navigate to="/404" /> },
             ],
         },

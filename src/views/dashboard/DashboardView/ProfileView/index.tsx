@@ -21,16 +21,20 @@ import { useApp } from 'src/interfaces/AppContext';
 import FluentButton from 'src/components/FluentButton';
 import { FluentCard } from 'src/components/FluentCard';
 import { db, IUser } from 'src/interfaces';
+import { useLocation } from 'react-router';
 
 interface Props {}
 
 const ProfileView = ({}: Props): JSX.Element => {
     const theme = useTheme();
-    const [isOpen, setIsOpen] = useState(false);
+    const { state } = useLocation();
+    const { action } = state as { action: string | undefined | null };
+
+    const [isOpen, setIsOpen] = useState(action == 'open-post-new' || false);
     const toggleDialog = () => {
         setIsOpen(!isOpen);
     };
-    const [isOpenSettings, setIsOpenSettings] = useState(false);
+    const [isOpenSettings, setIsOpenSettings] = useState(action == 'open-settings' || false);
     const toggleDialogSettings = () => {
         setIsOpenSettings(!isOpenSettings);
     };

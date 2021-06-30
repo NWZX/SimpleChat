@@ -9,13 +9,17 @@ import { useApp } from 'src/interfaces/AppContext';
 import FluentButton from 'src/components/FluentButton';
 import { FluentCard } from 'src/components/FluentCard';
 import { FluentGrid, FluentGridItem } from 'src/components/FluentGrid';
+import { useLocation } from 'react-router';
 
 interface Props {}
 const RoomsView = ({}: Props): JSX.Element => {
     const { user, rooms } = useApp();
     const theme = useTheme();
 
-    const [isOpen, setIsOpen] = useState(false);
+    const { state } = useLocation();
+    const { action } = state as { action: string | undefined | null };
+
+    const [isOpen, setIsOpen] = useState(action == 'open-contact-new' || false);
     const toggleDialog = () => {
         setIsOpen(!isOpen);
     };

@@ -190,11 +190,27 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
                     dispatchData({ type: 'set-user', payload: { user: userData } });
                     dispatchData({ type: 'set-profile', payload: { currentProfile: userData.id } });
                     dispatchData({ type: 'set-rooms', payload: { rooms: roomsData } });
+                    dispatchData({
+                        type: 'set-room',
+                        payload: {
+                            currentRoom: {
+                                room: {
+                                    id: userData.id,
+                                    ref: db.collection('rooms').doc(),
+                                    roomName: userData.username,
+                                    users: [],
+                                    lastWritingActivity: { id: userData.id, timestamp: 0 },
+                                    lastMessage: 0,
+                                    createdAt: 0,
+                                    updatedAt: 0,
+                                },
+                                page: 'profile',
+                            },
+                        },
+                    });
                     setLock(false);
                 } else {
-                    dispatchData({ type: 'set-user', payload: { user: undefined } });
-                    dispatchData({ type: 'set-profile', payload: { currentProfile: undefined } });
-                    dispatchData({ type: 'set-rooms', payload: { rooms: undefined } });
+                    throw new Error();
                 }
             } catch (error) {
                 dispatchData({ type: 'set-user', payload: { user: undefined } });
