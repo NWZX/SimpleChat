@@ -16,8 +16,8 @@ const RoomsView = ({}: Props): JSX.Element => {
     const { user, rooms } = useApp();
     const theme = useTheme();
 
-    const { state } = useLocation();
-    const action = (state as { action: string | undefined | null }).action || '';
+    const location = useLocation();
+    const action = (location?.state as { action: string | undefined | null })?.action || '';
 
     const [isOpen, setIsOpen] = useState(action === 'open-contact-new' || false);
     const toggleDialog = () => {
