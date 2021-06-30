@@ -7,8 +7,8 @@ importScripts('/__/firebase/init.js');
 const messaging = firebase.messaging();
 let nofiticationObj = {};
 
-messaging.onBackgroundMessage(async function (payload) {
-    try {
+function execNotification(payload) {
+        try {
         console.log('[firebase-messaging-sw.js] Received background message ', payload);
         // Customize notification here
         const { title, body, tag, ...notificationOptions } = payload.notification;
@@ -35,7 +35,11 @@ messaging.onBackgroundMessage(async function (payload) {
     } catch (error) {
         console.log(error);
     }
-});
+}
+
+messaging.onMessage(execNotification);
+
+messaging.onBackgroundMessage(execNotification);
 
 self.addEventListener('notificationclick', () => {
     nofiticationObj = {};

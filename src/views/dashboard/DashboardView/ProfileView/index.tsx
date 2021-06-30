@@ -28,7 +28,7 @@ interface Props {}
 const ProfileView = ({}: Props): JSX.Element => {
     const theme = useTheme();
     const { state } = useLocation();
-    const { action } = state as { action: string | undefined | null };
+    const action = (state as { action: string | undefined | null }).action || '';
 
     const [isOpen, setIsOpen] = useState(action === 'open-post-new' || false);
     const toggleDialog = () => {
