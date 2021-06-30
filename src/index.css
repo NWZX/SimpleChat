@@ -46,3 +46,41 @@ input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
+
+/*SW update*/
+.sw-update-visble {
+  display: inline-block;
+  opacity: 1;
+}
+.sw-update-hidden {
+  display: none;
+  opacity: 0;
+}
+#sw-update {
+  position: fixed;
+  z-index: 1000;
+  right: 3%;
+  bottom: 3%;
+  border: 1px solid black;
+  padding: 10px;
+  color: #fcfcfc;
+  background: #24292e;
+  border-radius: 5px;
+  font-weight: 500;
+
+  box-shadow: rgb(0 0 0 / 13%) 0px 3.2px 7.2px 0px,
+    rgb(0 0 0 / 11%) 0px 0.6px 1.8px 0px;
+  transition: opacity 2s;
+}
+#sw-update-bt {
+  padding-left: 15px;
+  color: #09b1bd;
+  font-weight: 700;
+}
+
+#sw-update-bt:hover {
+  cursor: pointer;
+}
+#sw-update-bt:active {
+  color: #66d2da;
+}

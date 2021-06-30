@@ -57,6 +57,11 @@ export function register(config?: Config): void {
     }
 }
 
+function userUpdateNotification() {
+    const notification = document.getElementById('sw-update');
+    if (notification) notification.className = 'sw-update-show';
+}
+
 function registerValidSW(swUrl: string, config?: Config) {
     navigator.serviceWorker
         .register(swUrl)
@@ -76,6 +81,7 @@ function registerValidSW(swUrl: string, config?: Config) {
                                 'New content is available and will be used when all ' +
                                     'tabs for this page are closed. See https://cra.link/PWA.',
                             );
+                            userUpdateNotification();
 
                             // Execute callback
                             if (config && config.onUpdate) {
