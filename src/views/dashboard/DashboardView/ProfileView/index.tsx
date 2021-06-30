@@ -30,11 +30,11 @@ const ProfileView = ({}: Props): JSX.Element => {
     const { state } = useLocation();
     const { action } = state as { action: string | undefined | null };
 
-    const [isOpen, setIsOpen] = useState(action == 'open-post-new' || false);
+    const [isOpen, setIsOpen] = useState(action === 'open-post-new' || false);
     const toggleDialog = () => {
         setIsOpen(!isOpen);
     };
-    const [isOpenSettings, setIsOpenSettings] = useState(action == 'open-settings' || false);
+    const [isOpenSettings, setIsOpenSettings] = useState(action === 'open-settings' || false);
     const toggleDialogSettings = () => {
         setIsOpenSettings(!isOpenSettings);
     };

@@ -19,7 +19,7 @@ const RoomsView = ({}: Props): JSX.Element => {
     const { state } = useLocation();
     const { action } = state as { action: string | undefined | null };
 
-    const [isOpen, setIsOpen] = useState(action == 'open-contact-new' || false);
+    const [isOpen, setIsOpen] = useState(action === 'open-contact-new' || false);
     const toggleDialog = () => {
         setIsOpen(!isOpen);
     };
