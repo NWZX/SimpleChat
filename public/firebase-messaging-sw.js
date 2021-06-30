@@ -20,7 +20,7 @@ messaging.onBackgroundMessage(async function (payload) {
 
         const message = '';
         const i = 0;
-        for (const [_, value] of Object.entries(object1)) {
+        for (const [_, value] of Object.entries(nofiticationObj)) {
             if (i == 4) {
                 message += 'more...';
                 break;
