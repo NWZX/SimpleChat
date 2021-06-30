@@ -84,13 +84,19 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
                 tokens: tokens,
                 notification: {
                     title: sender.username,
-                    body: message.content.slice(0, 100)
+                    body: message.content.slice(0, 100),
                 },
                 webpush: {
                     notification: {
-                        title: sender.username,
+                        title: room.roomName,
                         body: message.content.slice(0, 100),
                         timestamp: message.createdAt,
+                        vibrate: 200,
+                        badge: 'https://simplechat-37da5.web.app/ressources/maskable_icon_x128.png',
+                        icon: 'https://simplechat-37da5.web.app/ressources/maskable_icon_x192.png',
+                        requireInteraction: false,
+                        tag: 'sc-' + room.id,
+                        renotify: true,
                     },
                     headers: { Urgency: 'normal' },
                     fcmOptions: { link: 'https://simplechat-37da5.web.app/' },
