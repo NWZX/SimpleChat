@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Helmet } from 'react-helmet';
@@ -17,30 +18,30 @@ type TLocationState = { action: TRegistedAction | undefined | null } & Record<st
 const DashboardView = ({ title }: Props): JSX.Element => {
     const { currentRoom, changeRoom, rooms } = useApp();
     const location = useLocation();
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const [params, setParams] = useState<Record<string, any>>({});
 
-    const state = location?.state ? (location?.state as TLocationState) : undefined;
-    switch (state?.action) {
-        case 'open-settings':
-            changeRoom(undefined, 'profile');
-            setParams({ openSettings: true });
-            break;
-        case 'open-post-new':
-            changeRoom(undefined, 'profile');
-            setParams({ openPostsNew: true });
-            break;
-        case 'open-contact-new':
-            setParams({ openContactNew: true });
-            break;
-        case 'open-chat':
-            const room = rooms?.find((r) => r.id == state.id);
-            room && changeRoom(room, 'chat');
-            break;
-        default:
-            setParams({});
-            break;
-    }
+    // const state = location?.state ? (location?.state as TLocationState) : undefined;
+    // switch (state?.action) {
+    //     case 'open-settings':
+    //         changeRoom(undefined, 'profile');
+    //         setParams({ openSettings: true });
+    //         break;
+    //     case 'open-post-new':
+    //         changeRoom(undefined, 'profile');
+    //         setParams({ openPostsNew: true });
+    //         break;
+    //     case 'open-contact-new':
+    //         setParams({ openContactNew: true });
+    //         break;
+    //     case 'open-chat':
+    //         const room = rooms?.find((r) => r.id == state.id);
+    //         room && changeRoom(room, 'chat');
+    //         break;
+    //     default:
+    //         setParams({});
+    //         break;
+    // }
 
     let SubPage = null;
     switch (currentRoom?.page) {
@@ -54,14 +55,14 @@ const DashboardView = ({ title }: Props): JSX.Element => {
             SubPage = null;
     }
 
-    useEffect(() => {
-        if (state) {
-            setTimeout(() => {
-                navigate('/', { replace: true, state: {} });
-            }, 1000);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // useEffect(() => {
+    //     if (state) {
+    //         setTimeout(() => {
+    //             navigate('/', { replace: true, state: {} });
+    //         }, 1000);
+    //     }
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, []);
 
     return (
         <>
