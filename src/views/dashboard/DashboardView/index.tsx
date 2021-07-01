@@ -21,7 +21,8 @@ const DashboardView = ({ title }: Props): JSX.Element => {
     //const navigate = useNavigate();
     const [params, setParams] = useState<Record<string, any>>({});
 
-    // const state = location?.state ? (location?.state as TLocationState) : undefined;
+    const state = location?.state ? (location?.state as TLocationState) : undefined;
+    console.log('state:', state);
     // switch (state?.action) {
     //     case 'open-settings':
     //         changeRoom(undefined, 'profile');
