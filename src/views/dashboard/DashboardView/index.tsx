@@ -21,27 +21,6 @@ const DashboardView = ({ title }: Props): JSX.Element => {
     const navigate = useNavigate();
     const [params, setParams] = useState<Record<string, any>>({});
 
-    // switch (state?.action) {
-    //     case 'open-settings':
-    //         changeRoom(undefined, 'profile');
-    //         setParams({ openSettings: true });
-    //         break;
-    //     case 'open-post-new':
-    //         changeRoom(undefined, 'profile');
-    //         setParams({ openPostsNew: true });
-    //         break;
-    //     case 'open-contact-new':
-    //         setParams({ openContactNew: true });
-    //         break;
-    //     case 'open-chat':
-    //         const room = rooms?.find((r) => r.id == state.id);
-    //         room && changeRoom(room, 'chat');
-    //         break;
-    //     default:
-    //         setParams({});
-    //         break;
-    // }
-
     let SubPage = null;
     switch (currentRoom?.page) {
         case 'profile':
@@ -56,13 +35,32 @@ const DashboardView = ({ title }: Props): JSX.Element => {
 
     useEffect(() => {
         const state = location?.state ? (location?.state as TLocationState) : undefined;
-        console.log('state:', state);
-        if (state) {
+        if (state?.action) {
+            switch (state.action) {
+                case 'open-settings':
+                    changeRoom(undefined, 'profile');
+                    setParams({ openSettings: true });
+                    break;
+                case 'open-post-new':
+                    changeRoom(undefined, 'profile');
+                    setParams({ openPostsNew: true });
+                    break;
+                case 'open-contact-new':
+                    setParams({ openContactNew: true });
+                    break;
+                case 'open-chat':
+                    const room = rooms?.find((r) => r.id == state.id);
+                    room && changeRoom(room, 'chat');
+                    break;
+                default:
+                    setParams({});
+                    break;
+            }
             setTimeout(() => {
                 navigate('/', { replace: true, state: {} });
             }, 1000);
         }
-    }, [location?.state, navigate]);
+    }, [changeRoom, location?.state, navigate, rooms]);
 
     return (
         <>
