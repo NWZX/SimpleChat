@@ -68,22 +68,53 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
             //Add each valid user to the list
             const timestamp = admin.firestore.Timestamp.now().toMillis();
 
+            const customFilter = <T extends unknown>(
+                arr: T[],
+                predicate: (n: T, i: number) => boolean,
+            ): [T, number][] => {
+                const r: [T, number][] = new Array(arr.length);
+                let c = 0;
+                for (let i = 0; i < arr.length; i++) {
+                    if (predicate(arr[i], i)) {
+                        r[c] = [arr[i], i];
+                        c++;
+                    }
+                }
+                r.length = c;
+                return r;
+            };
+
             const bodyCompose = (notifications: { key: string; obj: INotification }[]): string => {
                 let message = '';
-                const stack = notifications.slice(Math.max(notifications.length - 3, 0));
-                stack.forEach((v) => {
-                    const notifNbr = notifications.filter((n) => n.key == v.key).length;
-                    const sup = notifNbr ? `(+${notifNbr})` : '';
+                let stack = 0;
+                const keyDiscriminant: string[] = [];
+                
+                let i = 1;
+                while (notifications.length - i >= 0) {
+                    const e = notifications[notifications.length - i];
 
-                    message += v.obj.body + `...` + sup + '\n';
-                });
+                    if (stack === 3) {
+                        message += 'More...';
+                        break;
+                    } else if (!keyDiscriminant.includes(e.key)) {
+                        keyDiscriminant.push(e.key);
+                        stack++;
+                        const shrink = customFilter(notifications, (n) => n.key === e.key);
+                        const notifNbr = shrink.length - 1;
+                        const sup = notifNbr ? `(+${notifNbr})` : '';
+                        message += e.obj.body + sup + '\n';
+                        shrink.forEach((x) => notifications.splice(x[1], 1));
+                        i = 0;
+                    }
+                    i++;
+                }
                 return message;
             };
 
             const newNotification: { key: string, obj: INotification } = {
                 key: room.id,
                 obj: {
-                    body: `${room.roomName}: ${message.content.slice(0, 45)}`,
+                    body: `${room.roomName}: ${message.content.slice(0, 45)}${message.content.length > 45 ? '...' : ''}`,
                     timestamp: message.createdAt,
                 }
             };
@@ -96,22 +127,21 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
                             token: id,
                             notification: {
                                 title: 'SC',
-                                body: message.content.slice(0, 100),
+                                body: body,
                             },
                             webpush: {
                                 notification: {
-                                    title: "SC",
+                                    title: 'SC',
                                     body: body,
                                     timestamp: message.createdAt,
                                     vibrate: 200,
-                                    badge: 'https://simplechat-37da5.web.app/ressources/maskable_icon_x128.png',
+                                    badge: 'https://simplechat-37da5.web.app/ressources/simple-chat-badge.png',
                                     icon: 'https://simplechat-37da5.web.app/ressources/maskable_icon_x192.png',
-                                    requireInteraction: false,
-                                    tag: 'sc-W0W',
+                                    tag: 'simplechatW0W',
                                     renotify: true,
                                 },
                                 headers: { Urgency: 'normal' },
-                                fcmOptions: { link: 'https://simplechat-37da5.web.app/' },
+                                fcmOptions: { link: 'https://simplechat-37da5.web.app/room/'+room.id },
                             },
                         });
                     });
@@ -120,7 +150,7 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
             });
         }
     } catch (error) {
-        functions.logger.error(error.message);
+        functions.logger.error(error);
     }
     
 });

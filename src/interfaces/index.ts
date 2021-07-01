@@ -7,6 +7,8 @@ export interface INotification {
     timestamp: number;
 }
 
+export type TRegistedAction = 'open-settings' | 'open-contact-new' | 'open-post-new' | 'open-chat' | undefined;
+
 export interface IUser {
     id: string;
 
