@@ -1,5 +1,5 @@
 /* eslint-disable */
-export function execNotification(payload) {
+function execNotification(payload) {
     try {
         console.log('[firebase-messaging-sw.js] Received background message ', payload);
         // Customize notification here
