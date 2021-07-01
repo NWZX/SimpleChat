@@ -12,6 +12,7 @@ import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate } from 'workbox-strategies';
+importScripts('/nw.js');
 
 declare const self: ServiceWorkerGlobalScope;
 //[0] : active | [1]: OldActive
@@ -77,6 +78,11 @@ registerRoute(
 self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SKIP_WAITING') {
         self.skipWaiting();
+    }
+    if (event.data && event.data.type === 'NOTIFICATION') {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        execNotification(event.data.payload);
     }
     if (event.data && event.data.type === 'PAGE_OPEN') {
         pageState[0] = 1;
