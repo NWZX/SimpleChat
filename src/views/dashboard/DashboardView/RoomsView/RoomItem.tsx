@@ -60,6 +60,7 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
         <div
             className={classNames.itemCell}
             onClick={() => {
+                console.log(notifications);
                 notifications &&
                     notifications.length > 0 &&
                     user?.ref.set({ notifications: db.FieldValue.arrayRemove(...notifications) }, { merge: true });
