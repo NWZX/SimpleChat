@@ -82,13 +82,13 @@ if (process.env.NODE_ENV == 'production') {
 
     document.getElementById('sw-update-bt')?.addEventListener('click', function () {
         navigator.serviceWorker.ready.then((registration) => {
-            registration.waiting?.postMessage({
-                type: 'SKIP_WAITING',
-            });
-            registration.addEventListener('statechange', (e) => {
+            registration.waiting?.addEventListener('statechange', (e) => {
                 if ((e.target as any)?.state === 'activated') {
                     window.location.reload();
                 }
+            });
+            registration.waiting?.postMessage({
+                type: 'SKIP_WAITING',
             });
         });
     });
