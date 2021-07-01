@@ -17,7 +17,7 @@ export interface IUser {
     pushId: string[];
 
     username: string;
-    notifications: [string, INotification][];
+    notifications: { key: string; obj: INotification }[];
 
     createdAt: number;
     updatedAt: number;

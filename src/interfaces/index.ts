@@ -2,16 +2,22 @@ import firebase from 'firebase';
 
 export const db = firebase.firestore;
 
+export interface INotification {
+    body: string;
+    timestamp: number;
+}
+
 export interface IUser {
     id: string;
 
     ref: firebase.firestore.DocumentReference;
     status: { type: string; timestamp: number };
 
-    serviceKey?: string[];
-    pushId?: string[];
+    serviceKey: string[];
+    pushId: string[];
 
     username: string;
+    notifications: { key: string; obj: INotification }[];
 
     createdAt: number;
     updatedAt: number;

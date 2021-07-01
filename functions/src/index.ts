@@ -68,25 +68,25 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
             //Add each valid user to the list
             const timestamp = admin.firestore.Timestamp.now().toMillis();
 
-            const bodyCompose = (notifications: [string, INotification][]): string => {
+            const bodyCompose = (notifications: { key: string; obj: INotification }[]): string => {
                 let message = '';
                 const stack = notifications.slice(Math.max(notifications.length - 3, 0));
                 stack.forEach((v) => {
-                    const notifNbr = notifications.filter((n) => n[0] == v[0]).length;
+                    const notifNbr = notifications.filter((n) => n.key == v.key).length;
                     const sup = notifNbr ? `(+${notifNbr})` : '';
 
-                    message += v[1].body + `...` + sup + '\n';
-                })
+                    message += v.obj.body + `...` + sup + '\n';
+                });
                 return message;
-            }
+            };
 
-            const newNotification: [string, INotification] = [
-                room.id,
-                {
+            const newNotification: { key: string, obj: INotification } = {
+                key: room.id,
+                obj: {
                     body: `${room.roomName}: ${message.content.slice(0, 45)}`,
                     timestamp: message.createdAt,
-                },
-            ];
+                }
+            };
             users.forEach((u) => {
                 if (u.status.type == 'away' && timestamp - u.status.timestamp < 7 * 24 * 3600 * 1000) {
                     u.ref.set({ notifications : admin.firestore.FieldValue.arrayUnion(newNotification)}, {merge: true});

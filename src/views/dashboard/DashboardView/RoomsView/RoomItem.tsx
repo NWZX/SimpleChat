@@ -45,10 +45,13 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
     let coin: Record<string, any> = {};
     const lastActivity = otherUser?.status.timestamp || 0;
 
-    if (otherUser?.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {
+    const notifications = user?.notifications.filter((n) => n.key == item.id);
+    if (notifications && notifications.length > 0) {
+        coin = { presence: PersonaPresence.away, isOutOfOffice: true };
+    } else if (otherUser?.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {
         coin = { presence: PersonaPresence.online };
     } else if (otherUser?.status.type == 'away' && timestamp - lastActivity < 24 * 3600 * 1000) {
-        coin = { presence: PersonaPresence.online, isOutOfOffice: true };
+        coin = { presence: PersonaPresence.away };
     } else if (otherUser?.status.type) {
         coin = { presence: PersonaPresence.offline };
     }
@@ -57,6 +60,9 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
         <div
             className={classNames.itemCell}
             onClick={() => {
+                notifications &&
+                    notifications.length > 0 &&
+                    user?.ref.set({ notifications: db.FieldValue.arrayRemove(...notifications) }, { merge: true });
                 changeRoom(item, 'profile');
             }}
         >
