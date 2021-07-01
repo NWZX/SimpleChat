@@ -2,6 +2,11 @@ import * as firebase from 'firebase-admin';
 
 export const db = firebase.firestore;
 
+export interface INotification {
+    body: string;
+    timestamp: number;
+}
+
 export interface IUser {
     id: string;
 
@@ -12,6 +17,7 @@ export interface IUser {
     pushId: string[];
 
     username: string;
+    notifications: [string, INotification][];
 
     createdAt: number;
     updatedAt: number;

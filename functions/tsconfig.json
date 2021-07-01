@@ -8,12 +8,5 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2017",
-    "rootDir": "src",
-    "baseUrl": "./functions",
   },
-  "compileOnSave": true,
-  "include": [
-    "./src"
-  ],
-  "exclude": ["node_modules"]
 }

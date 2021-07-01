@@ -13,6 +13,6 @@ messaging.onBackgroundMessage(execNotification);
 self.addEventListener('notificationclick', () => {
     nofiticationObj = {};
 });
-// self.addEventListener('notificationclose', () => {
-//     nofiticationObj = {};
-// });
+self.addEventListener('notificationclose', () => {
+    nofiticationObj = {};
+});
