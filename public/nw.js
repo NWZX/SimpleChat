@@ -5,7 +5,7 @@ function execNotification(payload) {
         // Customize notification here
         const { title, ...notificationOptions } = payload.notification;
         
-        self.registration.showNotification(title, ...notificationOptions);
+        self.registration.showNotification(title, notificationOptions);
     } catch (error) {
         console.log(error);
     }
