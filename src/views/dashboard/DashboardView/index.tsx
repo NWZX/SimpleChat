@@ -18,11 +18,9 @@ type TLocationState = { action: TRegistedAction | undefined | null } & Record<st
 const DashboardView = ({ title }: Props): JSX.Element => {
     const { currentRoom, changeRoom, rooms } = useApp();
     const location = useLocation();
-    //const navigate = useNavigate();
+    const navigate = useNavigate();
     const [params, setParams] = useState<Record<string, any>>({});
 
-    const state = location?.state ? (location?.state as TLocationState) : undefined;
-    console.log('state:', state);
     // switch (state?.action) {
     //     case 'open-settings':
     //         changeRoom(undefined, 'profile');
@@ -56,14 +54,15 @@ const DashboardView = ({ title }: Props): JSX.Element => {
             SubPage = null;
     }
 
-    // useEffect(() => {
-    //     if (state) {
-    //         setTimeout(() => {
-    //             navigate('/', { replace: true, state: {} });
-    //         }, 1000);
-    //     }
-    //     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, []);
+    useEffect(() => {
+        const state = location?.state ? (location?.state as TLocationState) : undefined;
+        console.log('state:', state);
+        if (state) {
+            setTimeout(() => {
+                navigate('/', { replace: true, state: {} });
+            }, 1000);
+        }
+    }, [location?.state, navigate]);
 
     return (
         <>
