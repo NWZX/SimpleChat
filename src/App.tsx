@@ -25,6 +25,14 @@ if (firebase.apps.length === 0) {
             }
             console.log(err);
         });
+    firebase.messaging().onMessage((payload) => {
+        navigator.serviceWorker.ready.then((registration) => {
+            registration.active?.postMessage({
+                type: 'NOTIFICATION',
+                payload: payload,
+            });
+        });
+    });
 }
 
 const App = (): JSX.Element => {
