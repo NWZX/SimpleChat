@@ -45,7 +45,7 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
     let coin: Record<string, any> = {};
     const lastActivity = otherUser?.status.timestamp || 0;
 
-    const notifications = user?.notifications.filter((n) => n.key == item.id);
+    const notifications = user?.notifications?.filter((n) => n.key == item.id);
     if (notifications && notifications.length > 0) {
         coin = { presence: PersonaPresence.away, isOutOfOffice: true };
     } else if (otherUser?.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {

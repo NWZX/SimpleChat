@@ -90,8 +90,8 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
             users.forEach((u) => {
                 if (u.status.type == 'away' && timestamp - u.status.timestamp < 7 * 24 * 3600 * 1000) {
                     u.ref.set({ notifications : admin.firestore.FieldValue.arrayUnion(newNotification)}, {merge: true});
-                    u.pushId.forEach((id) => {
-                        const body = bodyCompose([...u.notifications, newNotification]);
+                    u.pushId?.forEach((id) => {
+                        const body = bodyCompose(u.notifications ? [...u.notifications, newNotification] : [newNotification]);
                         admin.messaging().send({
                             token: id,
                             notification: {

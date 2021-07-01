@@ -13,11 +13,11 @@ export interface IUser {
     ref: firebase.firestore.DocumentReference;
     status: { type: string; timestamp: number };
 
-    serviceKey: string[];
-    pushId: string[];
+    serviceKey?: string[];
+    pushId?: string[];
 
     username: string;
-    notifications: { key: string; obj: INotification }[];
+    notifications?: { key: string; obj: INotification }[];
 
     createdAt: number;
     updatedAt: number;
