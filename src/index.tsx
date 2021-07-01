@@ -8,7 +8,6 @@ import reportWebVitals from './reportWebVitals';
 import './index.css';
 
 initializeIcons();
-let swRefresh = false;
 
 ReactDOM.render(
     <BrowserRouter>
@@ -83,18 +82,15 @@ if (process.env.NODE_ENV == 'production') {
 
     document.getElementById('sw-update-bt')?.addEventListener('click', function () {
         navigator.serviceWorker.ready.then((registration) => {
-            registration.active?.postMessage({
+            registration.waiting?.postMessage({
                 type: 'SKIP_WAITING',
             });
+            registration.addEventListener('statechange', (e) => {
+                if ((e.target as any)?.state === 'activated') {
+                    window.location.reload();
+                }
+            });
         });
-    });
-
-    // The event listener that is fired when the service worker updates
-    // Here we reload the page
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (swRefresh) return;
-        window.location.reload();
-        swRefresh = true;
     });
 }
 process.env.NODE_ENV == 'development' && serviceWorkerRegistration.unregister();
