@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Helmet } from 'react-helmet';
@@ -60,7 +59,8 @@ const DashboardView = ({ title }: Props): JSX.Element => {
                 navigate('/', { replace: true, state: {} });
             }, 1000);
         }
-    }, [changeRoom, location?.state, navigate, rooms]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location?.state]);
 
     return (
         <>

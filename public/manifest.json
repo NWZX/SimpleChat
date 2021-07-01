@@ -1,22 +1,46 @@
 {
     "short_name": "SC",
     "name": "Simple Chat",
-    "shortcuts" : [
-      {
-        "name": "New Post",
-        "url": "/post/new",
-        "description": "Share a new post to everyone."
-      },
-      {
-          "name": "Add contact",
-          "url": "/contact/new",
-          "description": "Link a new contact with you."
-      },
-      {
-        "name": "Settings",
-        "url": "/settings",
-        "description": "Change your app settings."
-      }
+    "shortcuts": [
+        {
+            "name": "New Post",
+            "url": "/post/new",
+            "description": "Share a new post to everyone.",
+            "icons": [
+                {
+                    "src": "/ressources/shortcuts/sc-short-add-post.png",
+                    "type": "image/png",
+                    "sizes": "192x192",
+                    "purpose": "any"
+                }
+            ]
+        },
+        {
+            "name": "Add contact",
+            "url": "/contact/new",
+            "description": "Link a new contact with you.",
+            "icons": [
+                {
+                    "src": "/ressources/shortcuts/sc-short-add-contact.png",
+                    "type": "image/png",
+                    "sizes": "192x192",
+                    "purpose": "any"
+                }
+            ]
+        },
+        {
+            "name": "Settings",
+            "url": "/settings",
+            "description": "Change your app settings.",
+            "icons": [
+                {
+                    "src": "/ressources/shortcuts/sc-short-settings.png",
+                    "type": "image/png",
+                    "sizes": "192x192",
+                    "purpose": "any"
+                }
+            ]
+        }
     ],
     "icons": [
         {

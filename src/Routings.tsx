@@ -18,7 +18,8 @@ const NavigateWithQuery = ({ to, action }: { to: string; action: TRegistedAction
         } else {
             navigate(to, { state: { action } });
         }
-    }, [action, navigate, params, to]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     return <></>;
 };
 

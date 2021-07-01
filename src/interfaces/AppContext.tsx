@@ -250,8 +250,8 @@ export const useApp = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [context, dispatch] = useContext(AppContext);
     const changeRoom = (room: IRoom | undefined, page: 'profile' | 'chat') => {
-        const defaultRoom = {
-            currentRoom: room || {
+        const defaultRoom = room || {
+            currentRoom: {
                 room: {
                     id: context.user?.id,
                     ref: db().collection('rooms').doc(),
