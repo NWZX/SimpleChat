@@ -60,7 +60,7 @@ const DashboardView = ({ title }: Props): JSX.Element => {
             }, 1000);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location?.state]);
+    }, [location]);
 
     return (
         <>
