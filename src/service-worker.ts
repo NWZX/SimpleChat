@@ -82,7 +82,7 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'NOTIFICATION') {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        execNotification(event.data.payload);
+        event.waitUntil(execNotification(event.data.payload));
     }
     if (event.data && event.data.type === 'PAGE_OPEN') {
         pageState[0] = 1;

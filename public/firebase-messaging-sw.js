@@ -6,13 +6,5 @@ importScripts('nw.js');
 
 // Retrieve firebase messaging
 const messaging = firebase.messaging();
-let nofiticationObj = {};
 
 messaging.onBackgroundMessage(execNotification);
-
-self.addEventListener('notificationclick', () => {
-    nofiticationObj = {};
-});
-self.addEventListener('notificationclose', () => {
-    nofiticationObj = {};
-});

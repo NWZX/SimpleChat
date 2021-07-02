@@ -125,10 +125,6 @@ exports.createMessage = functions.firestore.document('messages/{messageId}').onC
                         const body = bodyCompose(u.notifications ? [...u.notifications, newNotification] : [newNotification]);
                         admin.messaging().send({
                             token: id,
-                            notification: {
-                                title: 'SC',
-                                body: body,
-                            },
                             webpush: {
                                 notification: {
                                     title: 'SC',
