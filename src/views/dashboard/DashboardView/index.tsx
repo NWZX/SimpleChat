@@ -59,8 +59,7 @@ const DashboardView = ({ title }: Props): JSX.Element => {
                 navigate('/', { replace: true, state: {} });
             }, 1000);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [location?.state]);
+    }, [changeRoom, location?.state, navigate, rooms]);
 
     return (
         <>
