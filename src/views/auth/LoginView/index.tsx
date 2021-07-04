@@ -1,6 +1,6 @@
 import { Card } from '@uifabric/react-cards';
-import { Link, MessageBar, MessageBarType, PrimaryButton, Separator, Stack, Text } from '@fluentui/react';
-import React, { useState } from 'react';
+import { Link, PrimaryButton, Separator, Stack, Text } from '@fluentui/react';
+import React from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -28,14 +28,11 @@ const LoginView = ({ title }: Props): JSX.Element => {
     const { control, handleSubmit } = useForm<Inputs>({
         resolver: yupResolver(schema), // yup, joi and even your own.
     });
-    const [hasError, setHasError] = useState(false);
-    const [error, setError] = useState('');
     const handleLogin = async (data: Inputs) => {
         try {
             await firebase.auth().signInWithEmailAndPassword(data.email, data.password);
         } catch (error) {
-            setError(error.message);
-            setHasError(true);
+            console.error(error.message);
         }
     };
 
@@ -46,18 +43,6 @@ const LoginView = ({ title }: Props): JSX.Element => {
                 <meta charSet="utf-8" />
                 <link rel="canonical" href={window.location.href} />
             </Helmet>
-            {hasError && (
-                <MessageBar
-                    messageBarType={MessageBarType.error}
-                    isMultiline={false}
-                    dismissButtonAriaLabel="Close"
-                    onDismiss={() => {
-                        setHasError(false);
-                    }}
-                >
-                    {error}
-                </MessageBar>
-            )}
             <Stack horizontalAlign="center" verticalAlign="center" style={{ minHeight: 'inherit' }}>
                 <Stack.Item>
                     <form onSubmit={handleSubmit(handleLogin)}>
@@ -73,7 +58,12 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                     name="email"
                                     control={control}
                                     defaultValue=""
-                                    innerProps={{ label: 'Email :', type: 'email', required: true }}
+                                    innerProps={{
+                                        autoComplete: 'email',
+                                        label: 'Email :',
+                                        type: 'email',
+                                        required: true,
+                                    }}
                                 />
                             </Card.Item>
                             <Card.Item grow>
@@ -82,6 +72,7 @@ const LoginView = ({ title }: Props): JSX.Element => {
                                     control={control}
                                     defaultValue=""
                                     innerProps={{
+                                        autoComplete: 'current-password',
                                         label: 'Password :',
                                         type: 'password',
                                         required: true,
