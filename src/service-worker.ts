@@ -16,7 +16,7 @@ importScripts('nw.js');
 
 declare const self: ServiceWorkerGlobalScope;
 //[0] : active | [1]: OldActive
-let pageState: [number, number] = [1, 1];
+let pageState: [number, number] = [1, 0];
 
 clientsClaim();
 

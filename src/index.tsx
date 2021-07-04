@@ -54,7 +54,7 @@ if (process.env.NODE_ENV == 'production') {
                 type: 'STATUS_UPDATE',
             });
         });
-    }, 15 * 1000);
+    }, 5 * 1000);
 
     function handleVisibilityChange() {
         navigator.serviceWorker.ready.then((registration) => {
@@ -69,7 +69,7 @@ if (process.env.NODE_ENV == 'production') {
             }
         });
     }
-    document.addEventListener('visibilitychange', handleVisibilityChange, false);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     window.onbeforeunload = function () {
         navigator.serviceWorker.ready.then((registration) => {
