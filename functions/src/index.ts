@@ -4,6 +4,7 @@ import * as express from 'express';
 import * as cors from 'cors';
 import { String, Literal, Record, Union } from 'runtypes';
 import { getUsersByIds, IMessage, INotification, IRoom } from './interface';
+import { SignUp } from './register';
 
 // // Start writing Firebase Functions
 // // https://firebase.google.com/docs/functions/typescript
@@ -15,6 +16,7 @@ const app = express();
 app.use(cors({ origin: true }));
 
 // build multiple CRUD interfaces:
+app.post('/auth/register', SignUp);
 app.get('/updateStatus/:id/:status', async (req, res) => {
     try {
         const Status = Union(Literal('online'), Literal('away'), Literal('offline'));

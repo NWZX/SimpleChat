@@ -1,6 +1,6 @@
-import { PrimaryButton, Separator, Stack, Text, Link, MessageBar, MessageBarType } from '@fluentui/react';
+import { PrimaryButton, Separator, Stack, Text, Link } from '@fluentui/react';
 import { Card } from '@uifabric/react-cards';
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useForm } from 'react-hook-form';
@@ -8,7 +8,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import firebase from 'firebase/app';
 import ControlTextField from 'src/components/ControlTextField';
-import { IUser } from 'src/interfaces';
+import { fetchPostJSON } from 'src/utils/api-helpers';
 
 const alphanum = /^[a-z0-9]+$/i;
 
@@ -38,29 +38,19 @@ const RegisterView = ({ title }: Props): JSX.Element => {
     const { control, handleSubmit } = useForm<Inputs>({
         resolver: yupResolver(schema), // yup, joi and even your own.
     });
-    const [hasError, setHasError] = useState(false);
-    const [error, setError] = useState('');
     const handleRegister = async (data: Inputs) => {
-        firebase
-            .auth()
-            .createUserWithEmailAndPassword(data.email, data.password)
-            .then((auth) => {
-                firebase
-                    .firestore()
-                    .collection('users')
-                    .doc(auth.user?.uid)
-                    .set({
-                        username: data.username,
-                        status: { type: 'online', timestamp: firebase.firestore.Timestamp.now().toMillis() },
-                        createdAt: firebase.firestore.Timestamp.now().toMillis(),
-                        lastActivity: firebase.firestore.Timestamp.now().toMillis(),
-                    } as Partial<IUser>);
-            })
-            .catch((error) => {
+        if (process.env.REACT_APP_API_GATEWAY) {
+            const { code, error, token } = await fetchPostJSON<
+                Inputs,
+                { code: number; error?: string; token?: string }
+            >(`${process.env.REACT_APP_API_GATEWAY}/auth/register`, data);
+
+            if (!error && code === 200 && token) {
+                firebase.auth().signInWithCustomToken(token);
+            } else {
                 console.error(error);
-                setError(error.message);
-                setHasError(true);
-            });
+            }
+        }
     };
 
     return (
@@ -70,18 +60,6 @@ const RegisterView = ({ title }: Props): JSX.Element => {
                 <meta charSet="utf-8" />
                 <link rel="canonical" href={window.location.href} />
             </Helmet>
-            {hasError && (
-                <MessageBar
-                    messageBarType={MessageBarType.error}
-                    isMultiline={false}
-                    dismissButtonAriaLabel="Close"
-                    onDismiss={() => {
-                        setHasError(false);
-                    }}
-                >
-                    {error}
-                </MessageBar>
-            )}
             <Stack horizontalAlign="center" verticalAlign="center" style={{ minHeight: 'inherit' }}>
                 <Stack.Item>
                     <form onSubmit={handleSubmit(handleRegister)}>
@@ -97,7 +75,7 @@ const RegisterView = ({ title }: Props): JSX.Element => {
                                     name="username"
                                     control={control}
                                     defaultValue=""
-                                    innerProps={{ label: 'Username :', required: true }}
+                                    innerProps={{ autoComplete: 'username', label: 'Username :', required: true }}
                                 />
                             </Card.Item>
                             <Card.Item grow>
@@ -105,7 +83,12 @@ const RegisterView = ({ title }: Props): JSX.Element => {
                                     name="email"
                                     control={control}
                                     defaultValue=""
-                                    innerProps={{ label: 'Email :', type: 'email', required: true }}
+                                    innerProps={{
+                                        autoComplete: 'email',
+                                        label: 'Email :',
+                                        type: 'email',
+                                        required: true,
+                                    }}
                                 />
                             </Card.Item>
                             <Card.Item grow>
@@ -114,6 +97,7 @@ const RegisterView = ({ title }: Props): JSX.Element => {
                                     control={control}
                                     defaultValue=""
                                     innerProps={{
+                                        autoComplete: 'new-password',
                                         label: 'Password :',
                                         type: 'password',
                                         required: true,
