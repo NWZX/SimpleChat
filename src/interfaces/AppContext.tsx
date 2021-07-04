@@ -237,7 +237,7 @@ export const AppProvider = ({ children }: { children: ReactNode }): JSX.Element 
             dispatchData({ type: 'set-ready', payload: { ready: true } });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [userData, roomsData, user, loadUser, loadUserData, data]);
+    }, [userData, roomsData, user, loadUser, loadUserData]);
 
     return (
         <AppContext.Provider value={[data, (t, p) => dispatchData({ type: t, payload: p })]}>
