@@ -64,7 +64,7 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
                 changeRoom(item, 'profile');
             }}
         >
-            <FluentGrid>
+            <FluentGrid style={{ flex: 1 }}>
                 <FluentGridItem
                     xs={hasNotification ? 7 : 12}
                     md={hasNotification ? 6 : 12}
