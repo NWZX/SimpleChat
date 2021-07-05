@@ -49,6 +49,12 @@ const ChatView = ({}: Props): JSX.Element => {
                 setUsernames(result);
             })();
         }
+        if (user && currentRoom) {
+            const notifications = user?.notifications?.filter((n) => n.key == currentRoom?.room.id);
+            notifications &&
+                notifications.length > 0 &&
+                user?.ref.set({ notifications: db.FieldValue.arrayRemove(...notifications) }, { merge: true });
+        }
         if (messages) ref.current?.scrollIntoView({ behavior: 'smooth' });
     }, [currentRoom, messages, user, usernames.length]);
 

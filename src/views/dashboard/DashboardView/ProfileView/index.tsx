@@ -64,14 +64,12 @@ const ProfileView = ({ openPostsNew = false, openSettings = false }: Props): JSX
     let coin: Record<string, any> = {};
     const lastActivity = userGet?.status.timestamp || 0;
 
-    if (userGet) {
-        if (userGet.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {
-            coin = { presence: PersonaPresence.online };
-        } else if (userGet.status.type == 'away' && timestamp - lastActivity < 24 * 3600 * 1000) {
-            coin = { presence: PersonaPresence.online, isOutOfOffice: true };
-        } else if (userGet.status.type) {
-            coin = { presence: PersonaPresence.offline };
-        }
+    if (userGet?.status.type == 'online' && timestamp - lastActivity < 2 * 3600 * 1000) {
+        coin = { presence: PersonaPresence.online };
+    } else if (userGet?.status.type == 'away' || timestamp - lastActivity < 24 * 3600 * 1000) {
+        coin = { presence: PersonaPresence.away };
+    } else {
+        coin = { presence: PersonaPresence.offline };
     }
 
     return (

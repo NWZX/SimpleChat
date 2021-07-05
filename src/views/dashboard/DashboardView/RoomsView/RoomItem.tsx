@@ -1,9 +1,10 @@
 import React from 'react';
-import { getFocusStyle, getTheme, ITheme, mergeStyleSets, Persona, PersonaPresence } from '@fluentui/react';
+import { getFocusStyle, getTheme, ITheme, mergeStyleSets, Persona, PersonaPresence, Text } from '@fluentui/react';
 import firebase from 'firebase/app';
 import { useApp } from 'src/interfaces/AppContext';
 import { db, IRoom, IUser } from 'src/interfaces';
 import { useDocumentData } from 'react-firebase-hooks/firestore';
+import { FluentGrid, FluentGridItem } from 'src/components/FluentGrid';
 
 const theme: ITheme = getTheme();
 const { palette, semanticColors } = theme;
@@ -26,6 +27,7 @@ const classNames = mergeStyleSets({
             borderRadius: '10px',
         },
     ],
+    text: { color: '#FF1744' },
 });
 
 const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
@@ -46,13 +48,12 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
     const lastActivity = otherUser?.status.timestamp || 0;
 
     const notifications = user?.notifications?.filter((n) => n.key == item.id);
-    if (notifications && notifications.length > 0) {
-        coin = { presence: PersonaPresence.away, isOutOfOffice: true };
-    } else if (otherUser?.status.type == 'online' && timestamp - lastActivity < 300 * 1000) {
+    const hasNotification = notifications && notifications.length > 0;
+    if (otherUser?.status.type == 'online' && timestamp - lastActivity < 2 * 3600 * 1000) {
         coin = { presence: PersonaPresence.online };
-    } else if (otherUser?.status.type == 'away' && timestamp - lastActivity < 24 * 3600 * 1000) {
+    } else if (otherUser?.status.type == 'away' || timestamp - lastActivity < 24 * 3600 * 1000) {
         coin = { presence: PersonaPresence.away };
-    } else if (otherUser?.status.type) {
+    } else {
         coin = { presence: PersonaPresence.offline };
     }
 
@@ -60,13 +61,29 @@ const RoomItem = ({ item }: { item?: IRoom }): JSX.Element | null => {
         <div
             className={classNames.itemCell}
             onClick={() => {
-                notifications &&
-                    notifications.length > 0 &&
-                    user?.ref.set({ notifications: db.FieldValue.arrayRemove(...notifications) }, { merge: true });
                 changeRoom(item, 'profile');
             }}
         >
-            <Persona text={item.roomName} imageInitials={otherUser?.username[0] || item.roomName[0]} {...coin} />
+            <FluentGrid>
+                <FluentGridItem
+                    xs={hasNotification ? 7 : 12}
+                    md={hasNotification ? 6 : 12}
+                    xl={hasNotification ? 5 : 12}
+                >
+                    <Persona
+                        text={item.roomName}
+                        imageInitials={otherUser?.username[0] || item.roomName[0]}
+                        {...coin}
+                    />
+                </FluentGridItem>
+                {hasNotification && (
+                    <FluentGridItem xs={5} md={6} xl={7}>
+                        <Text variant="smallPlus" className={classNames.text}>
+                            {notifications?.length} Unread
+                        </Text>
+                    </FluentGridItem>
+                )}
+            </FluentGrid>
         </div>
     );
 };
